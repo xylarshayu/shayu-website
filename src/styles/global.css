@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    line-height: 150%;
+    min-height: 100svh;
+    background-color: var(--dark-screen-color);
+    color: var(--dark-pen-color);
+    transition: all 0.3s ease-in-out;
+
+    --pen-color: theme(colors.neutral.900); /* For text, outlines */
+    --screen-color: theme(colors.neutral.200); /* Background */
+    --base-color: theme(colors.neutral.100); /* Opposite to pen */
+    --accent-color: theme(colors.primary.700); /* Highlighted */
+    --gray-color: theme(colors.primary.500); /* Grayed out */
+    --shade-color: theme(colors.neutral.300); /* Shaded boxes */
+    --faint-border-color: theme(colors.neutral.300); /* Catalogue divider */
+    --not-selected-color: theme(colors.primary.500);
+    /* Dark theme */
+    --dark-pen-color: theme(colors.neutral.100);
+    --dark-screen-color: theme(colors.neutral.800);
+    --dark-base-color: theme(colors.neutral.900);
+    --dark-accent-color: theme(colors.primary.200);
+    --dark-gray-color: theme(colors.primary.500);
+    --dark-shade-color: theme(colors.primary.900);
+    --dark-faint-border-color: theme(colors.primary.800);
+    --dark-not-selected-color: theme(colors.primary.600);
+    /* Other themes below theme */
+  }
+
+  .h1, .h2, .h3 {
+    font-family: 'Montserrat', sans-serif;
+    line-height: 1.2;
+  }
+  
+  .h1 {
+    font-weight: 900;
+    font-size: theme('fontSize.5xl-base');
+    @screen md {
+      font-size: theme('fontSize.5xl-md');
+    }
+    @screen lg {
+      font-size: theme('fontSize.5xl-lg');
+    }
+  }
+  
+  .h2 {
+    font-weight: 700;
+    /* font-size: var(--text-3xl); */
+    font-size: theme('fontSize.3xl-base');
+    @screen md {
+      font-size: theme('fontSize.3xl-md');
+    }
+    @screen lg {
+      font-size: theme('fontSize.3xl-lg');
+    }
+  }
+  
+  p.subtitle {
+    font-family: 'Montserrat', sans-serif;
+    line-height: 1.5;
+    font-weight: 600;
+    font-size: theme('fontSize.lg');
+    @screen md {
+      font-size: theme('fontSize.lg-md');
+    }
+    @screen lg {
+      font-size: theme('fontSize.lg-lg');
+    }
+  }
+  
+  p b {
+    font-weight: 700;
+  }
+
+  body::-webkit-scrollbar {
+    background-color: var(--shade-color);
+    width: 5px;
+  }
+  
+  body::-webkit-scrollbar-thumb {
+    background-color: var(--gray-color);
+    border: 1.3px solid var(--shade-color);
+    border-radius: 20px;
+  }
+}
