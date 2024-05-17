@@ -1,7 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import HeroCarousel from '@components/heroCarousel.svelte';
 
-const message: any = await fetch(Astro.url + '/api/statuses.json?num=1').then(res => res.json());
+const statuses: any = await fetch(Astro.url + '/api/statuses.json').then(res => res.json());
 ---
 
 <Layout title="My Homepage">
@@ -9,9 +10,9 @@ const message: any = await fetch(Astro.url + '/api/statuses.json?num=1').then(re
 		<h1 class="h1 text-primary-100">
 			Hey
 		</h1>
-		<p class="">
-			{message.data}
-		</p>
+		<div class="mt-2">
+			<HeroCarousel statuses={statuses} client:load />
+		</div>
 	</main>
 </Layout>
 
