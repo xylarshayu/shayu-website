@@ -4,7 +4,9 @@
     "baseUrl": ".",
     "paths": {
         "@components/*": ["src/components/*"],
-        "@styles/*": ["src/styles/*"]
+        "@styles/*": ["src/styles/*"],
+        "@db/*": ["src/db/*"],
+        "@layouts/*": ["src/layouts/*"],
     },
     "types": [
         "@cloudflare/workers-types/2023-07-01"

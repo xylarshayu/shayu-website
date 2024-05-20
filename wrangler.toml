@@ -3,6 +3,12 @@ name = "shayu-website"
 compatibility_date = "2024-05-12"
 pages_build_output_dir = "./dist"
 
+[[d1_databases]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "shayu-db-d1-2024-5"
+database_id = "94acc72b-3cc8-4151-a9a6-5ff8a60ea644"
+preview_database_id = "DB" # Required for Pages local development
+
 # Automatically place your workloads in an optimal location to minimize latency.
 # If you are running back-end logic in a Pages Function, running it closer to your back-end infrastructure
 # rather than the end user may result in better performance.

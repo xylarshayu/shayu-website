@@ -9,7 +9,12 @@
     "preview": "astro build && wrangler pages dev",
     "astro": "astro",
     "deploy": "astro build && wrangler pages deploy",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "db:generate": "drizzle-kit generate",
+    "db:apply:local": "wrangler d1 migrations apply shayu-db-d1-2024-5 --local",
+    "db:apply:remote": "wrangler d1 migrations apply shayu-db-d1-2024-5 --remote",
+    "db:studio": "drizzle-kit studio",
+    "db:up": "drizzle-kit up:sqlite"
   },
   "dependencies": {
     "@astrojs/check": "^0.7.0",
@@ -18,6 +23,8 @@
     "@astrojs/tailwind": "^5.1.0",
     "astro": "^4.8.4",
     "astro-google-fonts-optimizer": "^0.2.2",
+    "drizzle-kit": "^0.21.2",
+    "drizzle-orm": "^0.30.10",
     "postcss-nesting": "^12.1.4",
     "svelte": "^4.2.17",
     "tailwindcss": "^3.4.3",
