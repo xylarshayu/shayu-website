@@ -1,0 +1,50 @@
+---
+import Layout from '@layouts/Layout.astro';
+import { getDb } from '@db/index';
+import { statusTable } from "@db/schema";
+import { type insertStatus } from '@db/schema';
+
+if (Astro.request.method === "POST") {
+  try {
+    let { text, theme, mood, spotify_link } = Object.fromEntries(await Astro.request.formData()) as insertStatus;
+    if (!spotify_link?.length) spotify_link = null;
+    const db = getDb(Astro.locals.runtime.env.DB);
+    const newStatus = await db.insert(statusTable).values({ text, theme, mood, spotify_link }).returning();
+    console.log(newStatus);
+  }
+  catch (error) {
+    if (error instanceof Error) {
+      console.error(error.message);
+    }
+  }
+}
+
+---
+
+<Layout title="Make a new post">
+  <main class="flex flex-col items-center justify-center h-screen gap-1">
+    <h1 class="h2 text-primary-100">
+      Make a new post
+    </h1>
+    <div class="my-3">
+      <a href="/" class="underline italic cursor-pointer">Or Go Home 🏠</a>
+    </div>
+    <form method="POST" class="flex flex-wrap justify-between gap-y-2">
+      <textarea name="text" required class="basis-full input-basic" placeholder="What's on your mind?*" />
+      <select name="theme" required class="basis-[49%] input-basic">
+        {statusTable.theme.enumValues.map(theme => <option value={theme} selected={theme === 'light'}>{theme}</option>)}
+      </select>
+      <select name="mood" required class="basis-[49%] input-basic">
+        {statusTable.mood.enumValues.map(mood => <option value={mood} selected={mood === 'neutral'}>{mood}</option>)}
+      </select>
+      <input type="url" name="spotify_link" class="basis-full input-basic" placeholder="Spotify link" />
+      <button type="submit" class="btn primary basis-full justify-end font-bold tracking-wide">POST</button>
+    </form>
+  </main>
+</Layout>
+
+<style>
+	main {
+		background: linear-gradient(to bottom, var(--dark-base-color), transparent 45%);
+	}
+</style>

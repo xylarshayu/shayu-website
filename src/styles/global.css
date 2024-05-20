@@ -88,3 +88,56 @@
     border-radius: 20px;
   }
 }
+
+@layer components {
+
+  .btn {
+    @apply flex flex-row items-center gap-1 px-4 py-2 transition-all rounded-md cursor-pointer hover:brightness-105 hover:contrast-125; 
+    &.primary {
+      @apply bg-purple-900 text-white;
+    }
+    &.secondary {
+      @apply text-white bg-slate-700;
+    }
+    &.white {
+      @apply text-black bg-white;
+    }
+    &.black {
+      @apply text-white bg-black;
+    }
+    &.general {
+      @apply bg-white dark:bg-black text-black dark:text-white;
+    }
+    &.pill-outlined {
+      @apply bg-transparent border-2 rounded-full;
+    }
+    &:disabled {
+      @apply opacity-50 cursor-default;
+    }
+    &.small {
+      @apply px-2 py-1;
+    }
+  }  
+
+  .input-basic {
+    &[type="text"], &[type="number"], &[type="url"], &:is(select, textarea) {
+      @apply p-[0.2rem] outline-none border-[1px] rounded-sm border-slate-900 bg-white dark:bg-black text-black dark:text-white shadow-none focus-basic-styling;
+    }
+    &:is(textarea) {
+      @apply resize-none;
+    }
+    &:is(select) {
+      @apply cursor-pointer;
+    }
+    &:is(span) {
+      @apply font-mono font-bold tracking-wide;
+    }
+  }
+
+}
+
+@layer utilities {
+  .focus-basic-styling {
+    @apply transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-900
+  }
+}

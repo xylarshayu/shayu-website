@@ -1,17 +1,19 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import HeroCarousel from '@components/heroCarousel.svelte';
+import { type selectStatus as Status } from "@db/schema";
 
-const statuses: any = await fetch(Astro.url + '/api/statuses.json').then(res => res.json());
+const data: { statuses: Array<Status>, count: number } = await fetch(Astro.url + '/api/statuses.json?getCount=true').then(res => res.json());
+const { statuses, count } = data;
 ---
 
-<Layout title="My Homepage">
+<Layout title="Shayu's Site">
 	<main class="flex flex-col items-center justify-center h-screen gap-1">
 		<h1 class="h1 text-primary-100">
 			Hey
 		</h1>
 		<div class="mt-2">
-			<HeroCarousel statuses={statuses} client:load />
+			<HeroCarousel statuses={statuses} count={count} client:load />
 		</div>
 	</main>
 </Layout>
