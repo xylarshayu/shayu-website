@@ -33,7 +33,7 @@ export async function GET(context: APIContext): Promise<Response> {
       });
     };
 
-    const token = generateToken();
+    const token = await generateToken();
     context.cookies.set('auth_token', token, {
       path: "/",
       secure: import.meta.env.PROD,
