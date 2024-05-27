@@ -7,6 +7,7 @@
         "@styles/*": ["src/styles/*"],
         "@db/*": ["src/db/*"],
         "@layouts/*": ["src/layouts/*"],
+        "@lib/*": ["src/lib/*"],
     },
     "types": [
         "@cloudflare/workers-types/2023-07-01"

@@ -8,13 +8,16 @@ const { statuses, count } = data;
 ---
 
 <Layout title="Shayu's Site">
-	<main class="flex flex-col items-center justify-center h-screen gap-1">
+	<main class="flex flex-col items-center justify-center h-screen gap-1 relative">
 		<h1 class="h1 text-primary-100">
 			Hey
 		</h1>
 		<div class="mt-2">
 			<HeroCarousel statuses={statuses} count={count} client:load />
 		</div>
+		<footer class="absolute bottom-0 left-0 w-full h-[20%] border-t border-[--dark-faint-border-color] flex items-center justify-center">
+			<a href="/login/github">Are you <b class="text-violet-800">Shayu</b>?</a>
+		</footer>
 	</main>
 </Layout>
 
