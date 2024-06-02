@@ -9,8 +9,8 @@
   export let statuses: Array<Status> = [];
   export let currIdx = 0;
 
-  const getStatuses = async () => {
-    const data: { statuses: Array<Status> } = await fetch(`/api/statuses.json?offset=${currIdx + 7}`).then(res => res.json());
+  const getStatuses = async (idx = currIdx) => {
+    const data: { statuses: Array<Status> } = await fetch(`/api/statuses.json?offset=${idx + 7}`).then(res => res.json());
     const newStatuses = data.statuses;
     if (statuses.length) statuses = [...statuses, ...newStatuses];
   };
@@ -25,7 +25,7 @@
     });
     emblaApi.on('settle', () => {
       const idx = emblaApi.selectedScrollSnap() + 2; // Fetching it early on to avoid the user experiencing the weird scroll rerender
-      if (idx >= (statuses.length - 6) && statuses.length < count) getStatuses();
+      if (idx >= (statuses.length - 6) && statuses.length < count) getStatuses(idx);
     })
   };
 
@@ -47,14 +47,6 @@
       {/each}
     </div>
   </div>
-  <!-- {#key statuses.length}
-    <div class="hero-carousel-slides">
-      {#each statuses as status}
-        <StatusComponent status={status} />
-      {/each}
-    </div>
-  {/key} -->
-  <!-- <StatusComponent status={statuses[currIdx]} /> -->
   <div class="flex items-center gap-2">
     <button on:click={prev} disabled={currIdx === 0} class="font-bold text-lg disabled:opacity-50">{'<'}</button>
     <span class="font-bold tracking-wide">{dateString(statuses[currIdx].date)}</span>
@@ -69,6 +61,7 @@
 <style >
   .embla {
     @apply overflow-hidden;
+    max-width: 100svw;
 
     & .embla__container {
       @apply flex;
