@@ -1,22 +1,28 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import HeroCarousel from '@components/heroCarousel.svelte';
+import { checkLoggedIn, validateToken } from "@lib/auth";
 import { type selectStatus as Status } from "@db/schema";
 
 const data: { statuses: Array<Status>, count: number } = await fetch(Astro.url + '/api/statuses.json?getCount=true').then(res => res.json());
 const { statuses, count } = data;
+
+const { isLoggedIn } = await checkLoggedIn(Astro.cookies);
 ---
 
 <Layout title="Shayu's Site">
 	<main class="flex flex-col items-center justify-center h-screen gap-1 relative">
-		<h1 class="h1 text-primary-100">
-			Hey
+		<h1 class="h2 text-primary-100">
+			Welcome to Shayu's site! It's a WIP 👷🏿‍♂️
 		</h1>
 		<div class="mt-2">
 			<HeroCarousel statuses={statuses} count={count} client:load />
 		</div>
 		<footer class="absolute bottom-0 left-0 w-full h-[20%] border-t border-[--dark-faint-border-color] flex items-center justify-center">
-			<a href="/login/github">Are you <b class="text-violet-800">Shayu</b>?</a>
+			{ isLoggedIn ?
+				<a href="/login/github/logout">Stop being <b class="text-violet-800">Shayu</b></a> :
+				<a href="/login/github">Are you <b class="text-violet-800">Shayu</b>?</a>
+			}
 		</footer>
 	</main>
 </Layout>

@@ -3,13 +3,16 @@ import Layout from '@layouts/Layout.astro';
 import { getDb } from '@db/index';
 import { statusTable } from "@db/schema";
 import { type insertStatus } from '@db/schema';
-import { validateUser } from '@lib/auth';
+import { checkLoggedIn } from '@lib/auth';
 
-validateUser(Astro);
+const { isLoggedIn, toRedirect } = await checkLoggedIn(Astro.cookies);
+if (!isLoggedIn) return Astro.redirect(toRedirect);
 
 if (Astro.request.method === "POST") {
   try {
-    validateUser(Astro);
+    const { isLoggedIn, toRedirect } = await checkLoggedIn(Astro.cookies);
+    if (!isLoggedIn) return Astro.redirect(toRedirect);
+    
     let { text, theme, mood, spotify_link } = Object.fromEntries(await Astro.request.formData()) as insertStatus;
     if (!spotify_link?.length) spotify_link = null;
     const db = getDb(Astro.locals.runtime.env.DB);

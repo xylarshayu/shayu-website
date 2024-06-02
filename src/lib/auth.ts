@@ -1,7 +1,7 @@
 import { GitHub } from "arctic";
 import * as jose from 'jose';
 
-import { type AstroGlobal } from "astro";
+import { type AstroGlobal, type AstroCookies } from "astro";
 
 const JWT_ALG = 'HS256';
 const SECRET = new TextEncoder().encode(import.meta.env.JWT_SECRET);
@@ -24,15 +24,18 @@ export async function validateToken(token: string) {
   }
 };
 
-export async function validateUser(Astro: AstroGlobal) {
-  const token = Astro.cookies.get('auth_token');
-  if (!token || !token.value) {
-    return Astro.redirect('/404');
-  };
-  const tokenIsValid = await validateToken(token?.value ?? '');
-  if (!tokenIsValid) {
-    Astro.response.status = 403;
-    Astro.response.statusText = 'Only Shayu is authorized';
-    return Astro.redirect('/403');
-  };
-}
+export async function checkLoggedIn(cookies: AstroCookies ) {
+  let isLoggedIn = false, toRedirect: '/403' | '/404' | undefined;
+  const token = cookies.get('auth_token');
+  if (token && token.value) {
+    isLoggedIn = await validateToken(token?.value ?? '');
+    toRedirect = isLoggedIn ? undefined : '/403';
+  }
+  else toRedirect = '/404';
+  return { isLoggedIn, toRedirect };
+};
+
+export async function logOut(Astro: AstroGlobal) {
+  Astro.cookies.delete('auth_token');
+  return Astro.redirect('/');
+};
