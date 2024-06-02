@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import HeroCarousel from '@components/heroCarousel.svelte';
-import { checkLoggedIn, validateToken } from "@lib/auth";
+import { checkLoggedIn } from "@lib/auth";
 import { type selectStatus as Status } from "@db/schema";
 
 const data: { statuses: Array<Status>, count: number } = await fetch(Astro.url + '/api/statuses.json?getCount=true').then(res => res.json());

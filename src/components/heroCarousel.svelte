@@ -1,4 +1,8 @@
 <script lang="ts">
+  import StatusComponent from "./status.svelte";
+  import { dateString } from "@lib/utils";
+  import emblaCarouselSvelte from 'embla-carousel-svelte';
+  import { type EmblaCarouselType } from 'embla-carousel';
   import { type selectStatus as Status } from "@db/schema";
 
   export let count = 10;
@@ -11,37 +15,70 @@
     if (statuses.length) statuses = [...statuses, ...newStatuses];
   };
 
-  $: if (currIdx >= (statuses.length - 6) && statuses.length < count) getStatuses();
+  // $: if (currIdx >= (statuses.length - 6) && statuses.length < count) getStatuses();
 
-  const getDateString = (date: Date | string) => {
-    date = new Date(date);
-    const day = ("0" + date.getDate()).slice(-2);
-    const month = ("0" + (date.getMonth() + 1)).slice(-2);
-    const year = date.getFullYear().toString().slice(-2);
-    const hours = ("0" + date.getHours()).slice(-2);
-    const minutes = ("0" + date.getMinutes()).slice(-2);
+  let emblaApi: EmblaCarouselType;
+  function onEmblaInit(event: any): void {
+    emblaApi = event.detail;
+    emblaApi.on('select', () => {
+      currIdx = emblaApi.selectedScrollSnap();
+    });
+    emblaApi.on('settle', () => {
+      const idx = emblaApi.selectedScrollSnap() + 2; // Fetching it early on to avoid the user experiencing the weird scroll rerender
+      if (idx >= (statuses.length - 6) && statuses.length < count) getStatuses();
+    })
+  };
 
-    return `${day}/${month}/${year} ${hours}:${minutes}`;
-  }
+  const prev = () => {
+    emblaApi.scrollPrev();
+  };
+  const next = () => {
+    emblaApi.scrollNext();
+  };
+
 </script>
 
 <div class="flex flex-col items-center gap-2">
   {#if statuses.length}
-  <b>
-    {statuses[currIdx].text}
-  </b>
-  <p>
-    {getDateString(statuses[currIdx].date)} | {statuses[currIdx].mood} | {statuses[currIdx].theme}
-    {#if statuses[currIdx].spotify_link?.length}
-    <br>{statuses[currIdx].spotify_link}
-    {/if}
-  </p>
-  <div class="flex gap-2">
-    <button on:click={() => currIdx--} disabled={currIdx === 0}>Prev</button>
-    <button on:click={() => currIdx++} disabled={currIdx === statuses.length - 1}>Next</button>
+  <div class="embla" use:emblaCarouselSvelte on:emblaInit={onEmblaInit}>
+    <div class="embla__container">
+      {#each statuses as status}
+        <StatusComponent status={status} class="embla__slide" />
+      {/each}
+    </div>
+  </div>
+  <!-- {#key statuses.length}
+    <div class="hero-carousel-slides">
+      {#each statuses as status}
+        <StatusComponent status={status} />
+      {/each}
+    </div>
+  {/key} -->
+  <!-- <StatusComponent status={statuses[currIdx]} /> -->
+  <div class="flex items-center gap-2">
+    <button on:click={prev} disabled={currIdx === 0} class="font-bold text-lg disabled:opacity-50">{'<'}</button>
+    <span class="font-bold tracking-wide">{dateString(statuses[currIdx].date)}</span>
+    <button on:click={next} disabled={currIdx === statuses.length - 1} class="font-bold text-lg disabled:opacity-50">{'>'}</button>
   </div>
   <div class="w-full rounded border border-stone-500 text-center">
     {currIdx + 1} || {statuses.length}
   </div>
   {/if}
 </div>
+
+<style >
+  .embla {
+    @apply overflow-hidden;
+
+    & .embla__container {
+      @apply flex;
+
+      & :global(.embla__slide) {
+        flex: 0 0 100%;
+        min-width: 0;
+      }
+    }
+  }
+
+  
+</style>

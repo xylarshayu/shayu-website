@@ -20,6 +20,7 @@ export async function validateToken(token: string) {
     const { payload } = await jose.jwtVerify(token, SECRET);
     return payload.id === import.meta.env.MY_GITHUB_ID;
   } catch (e) {
+    if (e instanceof jose.errors.JWTExpired) console.error("expired");
     return false;
   }
 };
