@@ -4,7 +4,7 @@ import HeroCarousel from '@components/heroCarousel.svelte';
 import { checkLoggedIn } from "@lib/auth";
 import { type selectStatus as Status } from "@db/schema";
 
-const data: { statuses: Array<Status>, count: number } = await fetch(Astro.url + '/api/statuses.json?getCount=true').then(res => res.json());
+const data: { statuses: Array<Status>, count: number } = await fetch(Astro.url.origin + '/api/statuses.json?getCount=true').then(res => res.json());
 const { statuses, count } = data;
 
 const { isLoggedIn } = await checkLoggedIn(Astro.cookies);
@@ -29,9 +29,3 @@ const { isLoggedIn } = await checkLoggedIn(Astro.cookies);
 
 <script>
 </script>
-
-<style>
-	main {
-		background: linear-gradient(to bottom, var(--dark-base-color), transparent 45%);
-	}
-</style>

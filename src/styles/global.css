@@ -105,6 +105,9 @@
     &.black {
       @apply text-white bg-black;
     }
+    &.danger {
+      @apply bg-red-600 text-white;
+    }
     &.general {
       @apply bg-white dark:bg-black text-black dark:text-white;
     }
@@ -117,7 +120,25 @@
     &.small {
       @apply px-2 py-1;
     }
-  }  
+  }
+  
+  .my-toggle {
+    --toggle-color: theme('colors.slate.800');
+    .dark & {
+      --toggle-color: theme('colors.slate.500');
+    }
+
+    @apply cursor-pointer px-0 appearance-none w-12 h-6 rounded-full border-[0.2rem] border-[--toggle-color] bg-inherit relative transition-all duration-300 ease-in-out;
+  
+    &:after {
+      content: '';
+      @apply w-3.5 h-3.5 rounded-full bg-[--toggle-color] absolute left-[0.15rem] top-[0.15rem] transform translate-x-0 transition-all duration-300 ease-in-out;
+    }
+  
+    &:checked:after {
+      @apply transform translate-x-6 bg-violet-800;
+    }
+  }
 
   .input-basic {
     &[type="text"], &[type="number"], &[type="url"], &:is(select, textarea) {
