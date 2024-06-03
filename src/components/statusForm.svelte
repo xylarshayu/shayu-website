@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { type insertStatus } from '@db/schema';
+  import { statusTable, type insertStatus } from '@db/schema';
   import { dateSimpleString } from '@lib/utils';
   import StatusViewer from './status.svelte';
   import { Carta, MarkdownEditor } from 'carta-md';
@@ -77,10 +77,23 @@
     <span class="font-bold tracking-wide">{panelText}</span>
     <span class="flex items-center">{previewMode ? '👁‍🗨 Preview' : '✏ Edit'}&nbsp;&nbsp;&nbsp;<input type="checkbox" class="my-toggle" bind:checked={previewMode} /> </span>
   </div>
-  <div class="max-w-full">
+  <div class="max-w-full bg-slate-700 p-1">
     {#if previewMode}
       <StatusViewer status={status} />
     {:else}
+      <div class="flex flex-wrap justify-between mb-1">
+        <select name="theme" required class="basis-[49%] input-basic" bind:value={status.theme}>
+          {#each statusTable.theme.enumValues as theme}
+            <option value={theme}>{theme}</option>
+          {/each}
+        </select>
+        <select name="mood" required class="basis-[49%] input-basic" bind:value={status.mood}>
+          {#each statusTable.mood.enumValues as mood}
+            <option value={mood}>{mood}</option>
+          {/each}
+        </select>
+        <input bind:value={status.spotify_link} type="url" name="spotify_link" class="basis-full input-basic mt-1" placeholder="Spotify link" />
+      </div>
       <div class="bg-slate-400 max-h-[50vh] overflow-auto">
         <MarkdownEditor {carta} bind:value={markdownText} />
       </div>
