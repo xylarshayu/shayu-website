@@ -10,6 +10,7 @@
     "astro": "astro",
     "deploy": "astro build && wrangler pages deploy",
     "cf-typegen": "wrangler types",
+    "db:custom": "drizzle-kit generate --custom",
     "db:generate": "drizzle-kit generate",
     "db:apply:local": "wrangler d1 migrations apply shayu-db-d1-2024-5 --local",
     "db:apply:remote": "wrangler d1 migrations apply shayu-db-d1-2024-5 --remote",
@@ -37,6 +38,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240512.0",
+    "@tailwindcss/typography": "^0.5.13",
     "@types/jsonwebtoken": "^9.0.6",
     "wrangler": "^3.56.0"
   }

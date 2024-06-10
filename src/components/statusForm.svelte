@@ -1,16 +1,11 @@
 <script lang="ts">
   import { statusTable, type insertStatus } from '@db/schema';
-  import { dateSimpleString } from '@lib/utils';
+  import { dateSimpleString, getDefaultPostOrStatus } from '@lib/utils';
   import StatusViewer from './status.svelte';
   import { Carta, MarkdownEditor } from 'carta-md';
   import 'carta-md/default.css';
 
-  export let status: insertStatus = {
-    text: '',
-    theme: 'light',
-    mood: 'neutral',
-    spotify_link: '',
-  };
+  export let status = getDefaultPostOrStatus('status');
   export let mode: 'create' | 'update' = 'create';
 
   let date = status.date;
@@ -53,7 +48,7 @@
         method: 'DELETE',
       });
 
-      status = { text: '', theme: 'light', mood: 'neutral', spotify_link: '' };
+      status = getDefaultPostOrStatus('status');
       markdownText = '';
       mode = 'create';
     }
@@ -64,12 +59,10 @@
 
   let previewMode = false;
 
-  const carta = new Carta({ sanitizer: false, theme: 'dark-plus' });
+  const carta = new Carta({ sanitizer: false, theme: 'dark-plus', });
   
   let markdownText = status.text ?? '';
   $: if (markdownText !== status.text) status.text = markdownText;
-/*   $: if (status.text !== markdownText) markdownText = status.text ?? '';
-  $: if (markdownText !== status.text) status.text = markdownText; */
 </script>
 
 <div class="rounded-md overflow-hidden {$$restProps.class || ''}">
@@ -93,9 +86,10 @@
           {/each}
         </select>
         <input bind:value={status.spotify_link} type="url" name="spotify_link" class="basis-full input-basic mt-1" placeholder="Spotify link" />
+        <!-- Add image insert thingy -->
       </div>
       <div class="bg-slate-400 max-h-[50vh] overflow-auto">
-        <MarkdownEditor {carta} bind:value={markdownText} />
+        <MarkdownEditor {carta} bind:value={markdownText} mode='tabs' />
       </div>
       <div class="flex flex-row-reverse items-center p-2 justify-between bg-[--dark-shade-color]">
         {#if mode == 'create'}

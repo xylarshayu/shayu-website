@@ -8,6 +8,34 @@
       "when": 1716037966611,
       "tag": "0000_black_wraith",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1717924950307,
+      "tag": "0001_oval_gauntlet",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1717928617453,
+      "tag": "0002_melted_lilith",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1717929031847,
+      "tag": "0003_loud_enchantress",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1717986762393,
+      "tag": "0004_lonely_namora",
+      "breakpoints": true
     }
   ]
 }

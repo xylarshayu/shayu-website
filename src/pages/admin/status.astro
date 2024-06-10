@@ -2,23 +2,23 @@
 import Layout from '@layouts/Layout.astro';
 import { checkLoggedIn } from '@lib/auth';
 import { getPostOrStatus } from '@lib/utils';
-import PostForm from '@components/postForm.svelte';
+import StatusForm from '@components/statusForm.svelte';
 
 const { isLoggedIn, toRedirect } = await checkLoggedIn(Astro.cookies);
 if (!isLoggedIn) return Astro.redirect(toRedirect);
 
-let { data: post, mode } = await getPostOrStatus(Astro, 'post');
+let { data: status, mode } = await getPostOrStatus(Astro, 'status');
 ---
 
 <Layout title="Make a new post">
   <main class="w-[90%] md:w-[70%] mx-auto pt-10vh h-screen gap-1 pt-12">
     <h1 class="h4 text-primary-100 text-center md:text-left">
-      Make a new post
+      Make a new status
     </h1>
     <div class="my-3 text-right">
       <a href="/" class="underline italic cursor-pointer">Go Home 🏠</a> or
-      <a href="/admin/status" class="underline italic cursor-pointer">New Status 💭</a>
+      <a href="/admin/post" class="underline italic cursor-pointer">New Post 📑</a>
     </div>
-    <PostForm {post} mode={mode} class="w-full" client:load />
+    <StatusForm {status} mode={mode} class="w-full" client:load />
   </main>
 </Layout>

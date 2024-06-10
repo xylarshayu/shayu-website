@@ -42,7 +42,7 @@ export async function GET(context: APIContext): Promise<Response> {
       sameSite: "lax"
     });
 
-    return context.redirect("/admin/post");
+    return context.redirect("/admin/status");
   }
   catch (error) {
     if (error instanceof OAuth2RequestError) {
