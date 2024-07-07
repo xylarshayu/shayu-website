@@ -1,0 +1,27 @@
+---
+import Layout from "@layouts/Layout.astro";
+import ContentSearch from "@components/contentSearch.svelte";
+import { checkLoggedIn } from "@lib/auth";
+import { getListOfPostsOrStatuses } from "@lib/utils";
+
+const { isLoggedIn } = await checkLoggedIn(Astro.cookies);
+
+const contentType = (isLoggedIn ? Astro.url.searchParams.get('contentType') ?? 'post' : 'post') as 'post' | 'status';
+
+const options: { [key: string]: string | undefined | null } = {};
+['search', 'before', 'after', 'type'].forEach((val) => {
+  options[val] = Astro.url.searchParams.get(val);
+});
+
+const page = Number(Astro.url.searchParams.get('page') ?? '1');
+
+const { items, count } = await getListOfPostsOrStatuses(Astro.url.origin, contentType, true, page, options);
+---
+
+<Layout title="Search">
+  <main class="w-[90%] md:w-[70%] mx-auto pt-10vh h-screen gap-1 pt-12">
+    <h1 class="h3">My Posts</h1>
+    <p class="mt-2 mb-5">I sometimes write stuff.</p>
+    <ContentSearch urlOrigin={Astro.url.origin} {isLoggedIn} {contentType} {page} {options} {items} {count} client:load />
+  </main>
+</Layout>

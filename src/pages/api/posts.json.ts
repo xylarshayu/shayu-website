@@ -1,5 +1,5 @@
 import type { APIRoute, APIContext } from "astro";
-import { desc, isNull, count, DrizzleError, like, and, eq, gte, lte, between } from "drizzle-orm";
+import { desc, isNull, count, DrizzleError, like, and, eq, gte, lte, or, between } from "drizzle-orm";
 import { getDb } from "@db/index";
 import { postTable, type selectPost } from "@db/schema";
 import dayjs from "dayjs";
@@ -17,17 +17,22 @@ export const GET: APIRoute = async (context: APIContext) => {
     let beforeToSearch = url.searchParams.get('before'); // DD/MM/YYYY
     let afterToSearch = url.searchParams.get('after'); // DD/MM/YYYY
     if (textToSearch?.length) {
-      whereSQLqueryArray.push(like(postTable.text, `%${textToSearch}%`));
+      const searchCondition = or(
+        like(postTable.title, `%${textToSearch}%`),
+        like(postTable.text, `%${textToSearch}%`)
+      );
+      whereSQLqueryArray.push(searchCondition!);
     };
     if (typeToSearch?.length && postTable.type.enumValues.includes(typeToSearch)) {
       whereSQLqueryArray.push(eq(postTable.type, typeToSearch));
     };
     if (beforeToSearch?.length || afterToSearch?.length) {
+      console.log({ beforeToSearch, afterToSearch });
       const beforeDate = beforeToSearch ? dayjs(beforeToSearch, 'DD/MM/YYYY').toDate() : undefined;
       const afterDate = afterToSearch ? dayjs(afterToSearch, 'DD/MM/YYYY').toDate() : undefined;
       if (beforeDate && afterDate) {
         whereSQLqueryArray.push(between(postTable.date, beforeDate, afterDate));
-      } else whereSQLqueryArray.push(beforeDate ? gte(postTable.date, beforeDate) : lte(postTable.date, afterDate!));
+      } else whereSQLqueryArray.push(beforeDate ? lte(postTable.date, beforeDate) : gte(postTable.date, afterDate!));
     };
     const whereSQLquery = whereSQLqueryArray.length > 1 ? and(...whereSQLqueryArray) : whereSQLqueryArray[0];
 
