@@ -11,6 +11,8 @@
   export let page = 1;
   export let count = 0;
 
+  let justMounted = false; // Will set to true on $
+
   const calculatePaginationOps = () => {
     let arr: (number | string)[] = [1];
     const maxPage = Math.ceil(count / 10);
@@ -35,15 +37,14 @@
   $: {
     options.before = date.before ? dateConcise(new Date(date.before)) : undefined;
     options.after = date.after ? dateConcise(new Date(date.after)) : undefined;
-    if (isCorrectDateConcise(options.before) || isCorrectDateConcise(options.after)) {
+    if (justMounted && (isCorrectDateConcise(options.before) || isCorrectDateConcise(options.after))) {
       handleSearch();
     }
+    justMounted = true;
   }
 
   const handleSearch = async (forContentType = contentType, postType: selectPost['type'] | undefined = undefined) => {
     if (postType) options.type = postType;
-
-    console.log('handleSearch called', page, options);
 
     let firstSearch = false;
     const keys = Object.keys(options) as (keyof SearchOptions<'post' | 'status'>)[];
@@ -60,8 +61,6 @@
       contentType = forContentType;
       optionsCache = {...options};
     };
-
-    console.log(items);
 
     items = data.items;
     pageNumsArray = calculatePaginationOps();
@@ -157,6 +156,7 @@
   <hr class="mt-1 mb-3 border-[--dark-faint-border-color]">
 
   {#each items as item}
+  {#key item.id}
     <a href={getHref(item)} target={contentType == 'post' ? undefined : '_blank'} class="border-b border-[--dark-faint-border-color] pb-3 pt-2 block">
       {#if isPost(item)} <!-- Type guard to reassure typescript that it's a post -->
         <h1 class="font-bold text-lg">
@@ -178,6 +178,7 @@
           </a>
         {/if}
     </a>
+    {/key}
     {/each}
     <div class="border-t-2 border-[--dark-faint-border-color] py-4 flex items-center justify-between">
       <span class="text-[--gray-color] text-sm">
