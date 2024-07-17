@@ -14,5 +14,10 @@ export default defineConfig({
   }),
   integrations: [tailwind({
     nesting: true
-  }), svelte()]
+  }), svelte()],
+  vite: {
+    define: {
+      __ENABLE_CARTA_SSR_HIGHLIGHTER__: false
+    }
+  }
 });
