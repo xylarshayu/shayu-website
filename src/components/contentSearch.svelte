@@ -155,6 +155,7 @@
 
   <hr class="mt-1 mb-3 border-[--dark-faint-border-color]">
 
+  {#if items.length}
   {#each items as item}
   {#key item.id}
     <a href={getHref(item)} target={contentType == 'post' ? undefined : '_blank'} class="border-b border-[--dark-faint-border-color] pb-3 pt-2 block">
@@ -162,6 +163,9 @@
         <h1 class="font-bold text-lg">
           {item.title}
         </h1>
+        <span class="text-sm font-bold tracking-wide text-[--dark-gray-color]">
+          {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+        </span>
         <p class="post-preview-text my-2">
           {item.text}
         </p>
@@ -180,6 +184,11 @@
     </a>
     {/key}
     {/each}
+    {:else}
+    <div class="flex items-center justify-center h-28 text-sm font-bold italic tracking-wide text-[--gray-color]">
+      Looks like it's just you and me...
+    </div>
+    {/if}
     <div class="border-t-2 border-[--dark-faint-border-color] py-4 flex items-center justify-between">
       <span class="text-[--gray-color] text-sm">
         {count} result{count === 1 ? '' : 's'}
