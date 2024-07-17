@@ -1,7 +1,6 @@
 import { defineConfig } from 'astro/config';
 import cloudflare from "@astrojs/cloudflare";
 import tailwind from "@astrojs/tailwind";
-import icon from 'astro-icon';
 
 import svelte from "@astrojs/svelte";
 
@@ -15,5 +14,5 @@ export default defineConfig({
   }),
   integrations: [tailwind({
     nesting: true
-  }), svelte(), icon()]
+  }), svelte()]
 });
