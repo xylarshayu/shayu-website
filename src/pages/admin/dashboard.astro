@@ -1,9 +1,0 @@
----
-import Layout from '@layouts/Layout.astro';
-import { checkLoggedIn } from '@lib/auth';
-
-const { isLoggedIn, toRedirect } = await checkLoggedIn(Astro.cookies);
-if (!isLoggedIn) return Astro.redirect(toRedirect);
-
-
----
