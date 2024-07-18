@@ -2,8 +2,6 @@
   import { statusTable, type insertStatus } from '@db/schema';
   import { dateSimpleString, getDefaultPostOrStatus } from '@lib/utils';
   import StatusViewer from './status.svelte';
-  import { Carta, MarkdownEditor } from 'carta-md';
-  import 'carta-md/default.css';
 
   export let status = getDefaultPostOrStatus('status');
   export let mode: 'create' | 'update' = 'create';
@@ -49,7 +47,6 @@
       });
 
       status = getDefaultPostOrStatus('status');
-      markdownText = '';
       mode = 'create';
     }
     catch (error) {
@@ -58,11 +55,6 @@
   };
 
   let previewMode = false;
-
-  const carta = new Carta({ sanitizer: false, theme: 'dark-plus', });
-  
-  let markdownText = status.text ?? '';
-  $: if (markdownText !== status.text) status.text = markdownText;
 </script>
 
 <div class="rounded-md overflow-hidden {$$restProps.class || ''}">
@@ -88,9 +80,7 @@
         <input bind:value={status.spotify_link} type="url" name="spotify_link" class="basis-full input-basic mt-1" placeholder="Spotify link" />
         <!-- Add image insert thingy -->
       </div>
-      <div class="bg-slate-400 max-h-[50vh] overflow-auto">
-        <MarkdownEditor {carta} bind:value={markdownText} mode='tabs' />
-      </div>
+      <textarea bind:value={status.text} placeholder="Insert the status update text" class="mt-1 w-full max-h-[50vh] overflow-auto p-2 input-basic"></textarea>
       <div class="flex flex-row-reverse items-center p-2 justify-between bg-[--dark-shade-color]">
         {#if mode == 'create'}
         <button on:click={handleCreate} class="btn primary">Post status</button>
@@ -102,11 +92,3 @@
     {/if}
   </div>
 </div>
-
-<style>
-  :global(.carta-theme__default .carta-input, .carta-theme__default .carta-renderer) {
-    height: unset;
-    min-height: 150px;
-    max-height: 300px;
-  }
-</style>

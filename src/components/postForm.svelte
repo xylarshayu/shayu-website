@@ -3,8 +3,6 @@
   import { dateInputFormat, getDefaultPostOrStatus } from '@lib/utils';
   import PostViewer from './post.svelte';
   import ColorInput from './colorInput.svelte';
-  import { Carta, MarkdownEditor } from 'carta-md';
-  import 'carta-md/default.css';
 
   export let post = getDefaultPostOrStatus('post');
   export let mode: 'create' | 'update' = 'create';
@@ -58,10 +56,6 @@
 
   let previewMode = false;
 
-  const carta = new Carta({ sanitizer: false, theme: 'github-dark', });
-  let markdownText = post.text ?? '';
-  $: if (markdownText !== post.text) post.text = markdownText;
-
   const setDefaultColorValues = () => {
     post.textColor = postTable.textColor.default as string;
     post.backgroundColor = postTable.backgroundColor.default as string;
@@ -85,9 +79,7 @@
     {#if previewMode}
     <PostViewer {post} />
     {:else}
-    <div class="bg-slate-400 max-h-[50vh] overflow-auto">
-      <MarkdownEditor bind:value={markdownText} {carta} mode='tabs' />
-    </div>
+    <textarea bind:value={post.text} class="mt-1 w-full min-h-[25vh] max-h-[50vh] overflow-auto p-2 input-basic" placeholder="Time to write"></textarea>
     {/if}
   </div>
   <div class="flex justify-between basis-full gap-1">

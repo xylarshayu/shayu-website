@@ -15,12 +15,4 @@ export default defineConfig({
   integrations: [tailwind({
     nesting: true
   }), svelte()],
-/*   vite: {
-    define: {
-      __ENABLE_CARTA_SSR_HIGHLIGHTER__: false
-    }
-  }, */
-  define: {
-    __ENABLE_CARTA_SSR_HIGHLIGHTER__: false
-  }
 });

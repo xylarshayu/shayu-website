@@ -1,15 +1,13 @@
 <script lang="ts">
   import type { insertStatus as Status } from "@db/schema";
-  import { Carta, Markdown } from "carta-md";
+  import { marked } from "marked";
 
   export let status: Status;
-
-  const carta = new Carta();
 </script>
 
 <div class="flex flex-col items-center gap-2 {$$restProps.class || ''}">
   <div class="text-center">
-    <Markdown value={status.text ?? ''} {carta} />
+    {@html marked(status.text ?? '')}
   </div>
   <div>({ status.mood })</div>
   <div class="italic text-sm">{ status.theme }</div>

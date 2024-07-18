@@ -2,6 +2,7 @@
   import { type selectPost } from '@db/schema';
   import { getListOfPostsOrStatuses, isCorrectDateConcise, dateConcise, dateConciseForInput, dateConciseToInputFormat, dateString, type SearchOptions, type DataType } from "@lib/utils";
   import Status from './status.svelte';
+  import { marked } from 'marked';
 
   export let isLoggedIn = false;
   export let urlOrigin: string = '';
@@ -77,6 +78,11 @@
 
   const isPost = (item: DataType<'post' | 'status'>): item is selectPost => {
     return 'slug' in item;
+  };
+
+  const textContent = (item: DataType<'post' | 'status'>) => {
+    let text = marked.parseInline(item.text ?? '');
+    return text.toString().replace(/#/g, '');
   };
 
 </script>
@@ -164,10 +170,10 @@
           {item.title}
         </h1>
         <span class="text-sm font-bold tracking-wide text-[--dark-gray-color]">
-          {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+          {item.type == 'poem' ? 'Poem' : 'Post'}
         </span>
         <p class="post-preview-text my-2">
-          {item.text}
+          {@html textContent(item)}
         </p>
         {:else}
           <Status status={item} />
