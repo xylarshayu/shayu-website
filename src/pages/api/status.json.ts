@@ -3,6 +3,7 @@ import { desc, isNull, DrizzleError } from "drizzle-orm";
 import { getDb } from "@db/index";
 import { statusTable, type insertStatus } from "@db/schema";
 import { checkLoggedIn } from "@lib/auth";
+import { isValidImageUrl } from "@lib/utils";
 
 export const GET: APIRoute = async (context: APIContext) => {
   try {
@@ -32,11 +33,12 @@ export const POST: APIRoute = async (context: APIContext) => {
 
     const db = getDb(context.locals.runtime.env.DB);
     const body: insertStatus = await context.request.json();
-    let { text, theme, mood, spotify_link } = body;
+    let { text, theme, mood, spotify_link, image } = body;
     if (!spotify_link?.length) spotify_link = null;
+    if (image?.length && !isValidImageUrl(image)) return new Response("Bad request: image is invalid", { status: 400 });
     const query = await db
       .insert(statusTable)
-      .values({ text, theme, mood, spotify_link })
+      .values({ text, theme, mood, spotify_link, image })
       .returning();
 
     return new Response(JSON.stringify(query[0]));

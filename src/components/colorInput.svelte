@@ -5,7 +5,7 @@
 
 <div class="color-input input-basic {$$restProps.class || ''}">
   <input type="text" bind:value={color} placeholder={label} class="outline-none bg-transparent"/>
-  <input type="color" bind:value={color} style="--val:{color}" />
+  <input type="color" bind:value={color} style="--val:{color}" class="ml-auto" />
 </div>
 
 <style>

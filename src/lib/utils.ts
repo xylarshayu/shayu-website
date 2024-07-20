@@ -30,6 +30,21 @@ export function dateInputFormat (date: Date) {
   return dayjs(date).format("YYYY-MM-DD");
 };
 
+export function getURLfromBucketKey (key: string) {
+  return import.meta.env.BUCKET_URL + key;
+};
+
+export function isValidImageUrl (value: string) {
+  if (!value || !value.length) return false;
+  try {
+    const url = new URL(value);
+    console.log(url);
+    return ['http:', 'https:'].includes(url.protocol) && ['jpeg', 'jpg', 'png', 'webp', 'gif'].includes(url.href.split('.').pop() ?? '');
+  } catch {
+    return false;
+  }
+}
+
 export type DataType<T extends 'post' | 'status'> = T extends 'post' ? insertPost : insertStatus;
 export function getDefaultPostOrStatus<T extends 'post' | 'status'>(type: T): DataType<T> {
   if (type === 'post') {

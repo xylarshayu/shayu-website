@@ -15,5 +15,8 @@
   <h1 class="text-inherit">{ post.title }</h1>
   <p class="text-right text-sm my-4"><b>{ info.type }</b> | Posted on { info.date }</p>
   <hr class="mt-0 mb-4" />
+  {#if post.image}
+    <img src={post.image} alt="Preview" class="w-auto h-auto max-h-[300px] object-cover mx-auto" />
+  {/if}
   {@html marked(post.text ?? '')}
 </article>

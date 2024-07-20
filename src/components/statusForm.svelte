@@ -2,6 +2,7 @@
   import { statusTable, type insertStatus } from '@db/schema';
   import { dateSimpleString, getDefaultPostOrStatus } from '@lib/utils';
   import StatusViewer from './status.svelte';
+  import GalleryInput from './galleryInput.svelte';
 
   export let status = getDefaultPostOrStatus('status');
   export let mode: 'create' | 'update' = 'create';
@@ -77,6 +78,7 @@
             <option value={mood}>{mood}</option>
           {/each}
         </select>
+        <GalleryInput bind:value={status.image} class="mt-1" />
         <input bind:value={status.spotify_link} type="url" name="spotify_link" class="basis-full input-basic mt-1" placeholder="Spotify link" />
         <!-- Add image insert thingy -->
       </div>

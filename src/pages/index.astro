@@ -21,7 +21,7 @@ const { isLoggedIn } = await checkLoggedIn(Astro.cookies);
 		<a href="/search" class="block text-center mt-3 font-bold italic underline">
 			Search Posts
 		</a>
-		<footer class="absolute bottom-0 left-0 w-full h-[20%] border-t border-[--dark-faint-border-color] flex items-center justify-center">
+		<footer class="absolute bottom-0 left-0 w-full h-[10%] border-t border-[--dark-faint-border-color] flex items-center justify-center">
 			{ isLoggedIn ?
 				<a href="/login/github/logout">Stop being <b class="text-violet-800">Shayu</b></a> :
 				<a href="/login/github">Are you <b class="text-violet-800">Shayu</b>?</a>

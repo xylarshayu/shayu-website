@@ -3,6 +3,7 @@
   import { dateInputFormat, getDefaultPostOrStatus } from '@lib/utils';
   import PostViewer from './post.svelte';
   import ColorInput from './colorInput.svelte';
+  import GalleryInput from './galleryInput.svelte';
 
   export let post = getDefaultPostOrStatus('post');
   export let mode: 'create' | 'update' = 'create';
@@ -70,8 +71,9 @@
     {/each}
   </select>
   <input bind:value={date} type="date" name="date" class="basis-[64%] input-basic" />
-  <ColorInput bind:color={post.textColor} label="Text Color" class="mr-2" />
-  <ColorInput bind:color={post.backgroundColor} label="Background Color" class="mr-2" />
+  <GalleryInput bind:value={post.image} class="basis-[32%]" />
+  <ColorInput bind:color={post.textColor} label="Text Color" class="basis-[32%]" />
+  <ColorInput bind:color={post.backgroundColor} label="Background Color" class="basis-[32%]" />
   <button on:click={setDefaultColorValues} class="underline text-sm">Set default color values</button>
   <span class="flex items-center ml-auto">{previewMode ? '👁‍🗨 Preview' : '✏ Edit'}&nbsp;&nbsp;&nbsp;<input type="checkbox" class="my-toggle" bind:checked={previewMode} /> </span>
   <!-- Add image insert thingy -->
