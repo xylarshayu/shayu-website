@@ -8,7 +8,7 @@
 
     /* Light theme */
     --pen-color: theme(colors.neutral.900); /* For text, outlines */
-    --screen-color: theme(colors.neutral.200); /* Background */
+    --screen-color: theme(colors.yellow.50); /* Background */
     --base-color: theme(colors.neutral.100); /* Opposite to pen */
     --accent-color: theme(colors.primary.700); /* Highlighted */
     --gray-color: theme(colors.primary.500); /* Grayed out */
@@ -33,6 +33,11 @@
     --purple-pen-color: black;
     --purple-gray-color: theme(colors.stone.800);
     --purple-screen-color: theme(colors.violet.500);
+
+    /* Shayu text style */
+    --shayu-text-color: #31024f;
+    --shayu-text-shadow: 0 0 8px rgba(224, 200, 255, 0.8);
+    --shayu-text-shadow-pulse: 0 0 15px rgba(224, 200, 255, 1);
   }
 
   body {
@@ -43,10 +48,27 @@
     /* background-color: var(--dark-screen-color);
     color: var(--dark-pen-color); */
     transition: all 0.3s ease-in-out;
+    scrollbar-gutter: stable;
   }
 
   #shayu-logo {
     filter: drop-shadow(0 0px 5px rgba(107, 33, 168, 0.5));
+    transition: filter 0.3s ease-in-out;
+  }
+
+  #shayu-logo.obscure-logo {
+    filter: brightness(0) invert(0) grayscale(1) contrast(100);
+    animation: none !important;
+  }
+
+  a:has(.obscure-logo) {
+    animation: none !important;
+  }
+
+  #shayu-text {
+    color: var(--shayu-text-color);
+    text-shadow: var(--shayu-text-shadow);
+    animation: pulse-shadow 1s infinite alternate;
   }
 
   .page-height {
@@ -212,6 +234,11 @@
 @layer utilities {
   .focus-basic-styling {
     @apply transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-900
+  }
+
+  @keyframes pulse-shadow {
+    0% { text-shadow: var(--shayu-text-shadow); }
+    100% { text-shadow: var(--shayu-text-shadow-pulse); }
   }
 
   @keyframes wiggle-right {

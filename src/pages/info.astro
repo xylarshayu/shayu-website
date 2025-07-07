@@ -1,0 +1,47 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const NAMES = [
+  '(Ayush) Wardhan',
+  'Woden',
+  'ShitlordPalpatine',
+  'Xylar',
+  'snowyuuuu',
+  'Monsieur Rongriddle',
+  'Yusha',
+  'oily grampa',
+  'Mistah Mario'
+];
+
+const socialLinks = [
+  { name: 'GitHub', url: 'https://github.com/xylarshayu' },
+  { name: 'LinkedIn', url: 'https://www.linkedin.com/in/ayush-w-xylar' }
+];
+---
+
+<Layout title="Shayu's Site">
+  <div class="flex flex-col items-center justify-center page-height border-y border-[--dark-faint-border-color]">
+    <main>
+      <article class="prose !text-inherit">
+        <h1>Hola</h1>
+        <p>
+          I am <span id="shayu-text">shayu</span>. You may also know me as
+          {
+            NAMES.map((name, i) => (<>
+            <code>{name}</code>
+            { i < NAMES.length - 2 ? ', ' : (i === NAMES.length - 2 ? ' and ' : '')}
+          </>))}.
+        </p>
+        <p>
+          Feel free to find me elsewhere on the internet: 
+          { socialLinks.map((link, i) => (<>
+            <a href={link.url} class="underline italic cursor-pointer" target="_blank" rel="noopener noreferrer">
+              {link.name}
+            </a>
+            { i < socialLinks.length - 2 ? ', ' : (i === socialLinks.length - 2 ? ' and ' : '')}
+          </>)) }
+        </p>
+      </article>
+    </main>
+  </div>
+</Layout>

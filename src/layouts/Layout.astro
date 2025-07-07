@@ -10,9 +10,10 @@ interface Props {
 	title: string;
 	theme?: { color: string | undefined; background: string | undefined, gray: string | null } | Status['theme'] | undefined;
 	fetchLatestStatus?: boolean;
+	obscureLogo?: boolean;
 }
 
-let { title, theme = 'dark', fetchLatestStatus = true } = Astro.props;
+let { title, theme = 'dark', fetchLatestStatus = true, obscureLogo = false } = Astro.props;
 if (fetchLatestStatus) {
 	const { data: latestStatus } = await getPostOrStatus(Astro, 'status', true);
 	if (typeof theme == 'string') {
@@ -54,7 +55,7 @@ const lock_svg_src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAW7
 				<a href="/info" class="tracking-wider uppercase text-xs">Info</a>
 			</div>
 			<a href="/" class="h-1/2 wiggle-left-on-hover">
-				<img src="/shayu_imp.svg" alt="Shayu" id="shayu-logo" class="h-full w-auto delayed-zoom-on-hover" />
+				<img src="/shayu_imp.svg" alt="Shayu" id="shayu-logo" class:list={[ "h-full w-auto delayed-zoom-on-hover", { "obscure-logo": obscureLogo } ]} />
 			</a>
 		</nav>
 
@@ -84,6 +85,7 @@ const lock_svg_src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAW7
 	html {
 		font-family: system-ui, sans-serif;
 		transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+		scrollbar-gutter: stable;
 	}
 	code {
 		font-family:
