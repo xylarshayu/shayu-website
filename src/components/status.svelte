@@ -18,11 +18,11 @@
   <div class="text-center">
     {@html marked(status.text ?? '')}
   </div>
-  <div class="w-[400px] h-[80px]">
+  <div class="w-[300px] h-[80px]">
     {#if status.spotify_link}
       <iframe
         src={`https://open.spotify.com/embed/track/${status.spotify_link.split('/').at(-1)}&utm_source=oembed`}
-        width="400" height="80" title="Spotify Embed" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"
+        width="300" height="80" title="Spotify Embed" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"
       />
     {/if}
   </div>
