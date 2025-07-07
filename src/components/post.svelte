@@ -18,5 +18,5 @@
   {#if post.image}
     <img src={post.image} alt="Preview" class="w-auto h-auto max-h-[300px] object-cover mx-auto" />
   {/if}
-  {@html marked(post.text ?? '')}
+  {@html marked(post.text?.replace(/\n/g, '<br />') ?? '')}
 </article>

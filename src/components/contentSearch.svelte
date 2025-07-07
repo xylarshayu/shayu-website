@@ -81,7 +81,7 @@
   };
 
   const textContent = (item: DataType<'post' | 'status'>) => {
-    let text = marked.parseInline(item.text ?? '');
+    let text = marked.parseInline(item.text?.replace(/\n/g, '<br />') ?? '');
     return text.toString().replace(/#/g, '');
   };
 
@@ -154,6 +154,11 @@
       <button disabled={options.type == undefined} on:click={() => {options.type = undefined; handleSearch()}} class="filter-btn">
         All
       </button>
+      {#if import.meta.env.DEV}
+      <button on:click={() => console.log({ items })} class="filter-btn">
+        Debug 🤡
+      </button>
+      {/if}
     </div>
     {/if}
 
@@ -163,7 +168,7 @@
 
   {#if items.length}
   {#each items as item}
-  {#key item.id}
+  {#key contentType + item.id}
     <a href={getHref(item)} target={contentType == 'post' ? undefined : '_blank'} class="border-b border-[--dark-faint-border-color] pb-3 pt-2 block">
       {#if isPost(item)} <!-- Type guard to reassure typescript that it's a post -->
         <h1 class="font-bold text-lg">

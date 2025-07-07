@@ -87,6 +87,9 @@
   <div class="flex justify-between basis-full gap-1">
     {#if mode == 'create'}
     <button on:click={handleCreate} class="btn primary ml-auto">Post</button>
+    {#if import.meta.env.DEV}
+    <button on:click={() => console.log(post)} class="btn secondary">Log Post</button>
+    {/if}
     {:else}
     <button on:click={handleDelete} class="btn danger">Delete</button>
     <button on:click={handleUpdate} class="btn primary">Update</button>
