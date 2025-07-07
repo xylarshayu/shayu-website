@@ -43,7 +43,7 @@ export const PATCH: APIRoute = async (context: APIContext) => {
     if (!spotify_link?.length) spotify_link = null;
     const status = await db
       .update(statusTable)
-      .set({ text, theme, mood, spotify_link })
+      .set({ text, theme, mood, spotify_link, image })
       .where(
         and(
           isNull(statusTable._deleted_at),

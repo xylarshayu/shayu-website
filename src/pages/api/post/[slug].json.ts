@@ -36,13 +36,14 @@ export const PATCH: APIRoute = async (context: APIContext) => {
     if (!isLoggedIn) return context.redirect(toRedirect!);
     const db = getDb(context.locals.runtime.env.DB);
     const body: selectPost = await context.request.json();
-    let { title, text, type, image, textColor, backgroundColor } = body;
+    let { title, text, type, image, textColor, backgroundColor, date } = body;
     if (image?.length && !isValidImageUrl(image)) return new Response("Bad request: image is invalid", { status: 400 });
     if (!title) return new Response("Bad request: title is required", { status: 400 });
     const slug = title.toLowerCase().replace(/ /g, '-');
+    const thisDate = new Date(date);
     const query = await db
       .update(postTable)
-      .set({ title, slug, text, type, image, textColor, backgroundColor })
+      .set({ title, slug, text, type, image, textColor, backgroundColor, date: thisDate })
       .where(
         and(
           isNull(postTable._deleted_at),
