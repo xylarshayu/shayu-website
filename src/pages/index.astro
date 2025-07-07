@@ -11,27 +11,10 @@ const { isLoggedIn } = await checkLoggedIn(Astro.cookies);
 ---
 
 <Layout title="Shayu's Site">
-	<main class="flex flex-col items-center h-screen gap-1 relative">
-		<h1 class="h2 text-primary-100 text-center mt-[8vh]">
-			Welcome to Shayu's site! It's a WIP 👷🏿‍♂️
-		</h1>
+	<main class="flex flex-col items-center justify-center page-height gap-1 relative border-y border-[--dark-faint-border-color]">
 		<div class="mt-2">
 			<HeroCarousel statuses={statuses} count={count} client:load />
 		</div>
-		<footer class="absolute bottom-0 left-0 w-full border-t border-[--dark-faint-border-color] flex flex-col py-2 items-center gap-3">
-			<a href="/search" class="font-bold italic underline">
-				Search Posts
-			</a>
-			{ isLoggedIn ?
-				<span class="flex items-center gap-2">
-					<a href="/login/github/logout">Stop being <b class="text-violet-800">Shayu</b></a>
-					<span class="font-bold">|</span>
-					<a href="/admin/status">Make a status</a>
-				</span>
-				:
-				<a href="/login/github">Are you <b class="text-violet-800">Shayu</b>?</a>
-			}
-		</footer>
 	</main>
 </Layout>
 

@@ -1,22 +1,44 @@
 ---
 import { ViewTransitions } from 'astro:transitions';
 import '@styles/global.css';
+import { checkLoggedIn } from "@lib/auth";
+import { type selectStatus as Status } from "@db/schema";
 import { GoogleFontsOptimizer } from "astro-google-fonts-optimizer";
-interface Props {
-	title: string;
-	theme?: string | { color: string; background: string };
+
+const THEME_MAP = {
+	dark: { color: 'var(--dark-pen-color)', background: 'var(--dark-screen-color)' },
+	light: { color: 'var(--pen-color)', background: 'var(--screen-color)' },
+	red: { color: 'var(--red-pen-color)', background: 'var(--red-screen-color)' },
+	purple: { color: 'var(--purple-pen-color)', background: 'var(--purple-screen-color)' },
 }
 
-const { title } = Astro.props;
+interface Props {
+	title: string;
+	theme?: { color: string | undefined; background: string | undefined } | Status['theme'] | undefined;
+}
+
+const { title, theme = 'dark' } = Astro.props;
+
+let htmlThemeStyle = 'linear-gradient(to bottom, var(--dark-base-color), transparent 45%)';
+if (theme) {
+	const themeToApply = typeof theme === 'string' ? THEME_MAP[theme] : theme;
+	const { color, background } = themeToApply;
+	htmlThemeStyle = `${color ? `color: ${color};` : ''} ${background ? `background-color: ${background};` : ''}`;
+}
+
+const { isLoggedIn } = await checkLoggedIn(Astro.cookies);
+
+const keyhole_svg_src = 'https://www.svgrepo.com/show/72923/keyhole-silhouette.svg';
+const lock_svg_src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAW7hKUDCyjjeSV6_I84_imG3Mmx6jexY90A&s';
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" style={htmlThemeStyle}>
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="description" content="Astro description" />
 		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" type="image/svg+xml" href="/shayu_imp.svg" />
 		<meta name="generator" content={Astro.generator} />
 		<!-- <GoogleFontsOptimizer url="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" /> -->
 		<title>{title}</title>
@@ -24,24 +46,43 @@ const { title } = Astro.props;
 		<ViewTransitions />
 	</head>
 	<body>
+
+		<nav class="w-[90%] md:w-[70%] h-[--header-nav-height] py-1 mx-auto flex items-center justify-between">
+			<div class="gap-4 flex items-center">
+				<a href="/search" class="tracking-wider uppercase text-xs">Writings</a>
+				<span>•</span>
+				<a href="/info" class="tracking-wider uppercase text-xs">Info</a>
+			</div>
+			<a href="/" class="h-1/2 wiggle-left-on-hover">
+				<img src="/shayu_imp.svg" alt="Shayu" id="shayu-logo" class="h-full w-auto delayed-zoom-on-hover" />
+			</a>
+		</nav>
+
 		<slot />
+
+		<footer class="w-[90%] md:w-[70%] h-[--header-nav-height] py-1 mx-auto flex items-center justify-center">
+			{
+				isLoggedIn ?
+					<div class="flex items-center gap-2">
+						<a href="/login/github/logout">
+							<img src={lock_svg_src} alt="Goodbye shayu" class="h-[15px] w-auto" loading="lazy"/>
+						</a>
+						<a href="/admin/status">
+							Post
+						</a>
+					</div>
+					:
+					<a href="/login/github">
+						<img src={keyhole_svg_src} alt="Are you shayu?" class="h-[15px] w-auto" loading="lazy"/>
+					</a>
+			}
+		</footer>
+
 	</body>
 </html>
 <style is:global>
-	:root {
-		--accent: 136, 58, 234;
-		--accent-light: 224, 204, 250;
-		--accent-dark: 49, 10, 101;
-		--accent-gradient: linear-gradient(
-			45deg,
-			rgb(var(--accent)),
-			rgb(var(--accent-light)) 30%,
-			white 60%
-		);
-	}
 	html {
 		font-family: system-ui, sans-serif;
-		background: linear-gradient(to bottom, var(--dark-base-color), transparent 45%);
 	}
 	code {
 		font-family:

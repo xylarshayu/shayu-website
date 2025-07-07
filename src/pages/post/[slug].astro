@@ -6,10 +6,17 @@ const { slug } = Astro.params;
 
 const post: selectPost = await fetch(Astro.url.origin + '/api/post/' + slug + '.json').then(res => res.json());
 if (!post) return Astro.redirect('/404');
+
+const theme = post.textColor || post.backgroundColor
+  ? {
+      color: post.textColor ?? undefined,
+      background: post.backgroundColor ?? undefined,
+    }
+  : undefined;
 ---
 
-<Layout title={post.title}>
-  <div class="p-4" style={"color: " + post.textColor + "; background-color: " + post.backgroundColor + ";"}>
+<Layout title={post.title} theme={theme}>
+  <div class="px-4 py-12 page-height w-[90%] md:w-[50%] mx-auto" style={"color: " + post.textColor + "; background-color: " + post.backgroundColor + ";"}>
     <PostViewer post={post} />
   </div>
 </Layout>

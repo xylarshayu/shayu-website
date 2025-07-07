@@ -48,13 +48,13 @@
     </div>
   </div>
   <div class="flex items-center gap-2">
-    <button on:click={prev} disabled={currIdx === 0} class="font-bold text-lg disabled:opacity-50">{'<'}</button>
-    <span class="font-bold tracking-wide">{dateString(statuses[currIdx].date)}</span>
-    <button on:click={next} disabled={currIdx === statuses.length - 1} class="font-bold text-lg disabled:opacity-50">{'>'}</button>
+    <button on:click={prev} disabled={currIdx === 0} class="font-bold text-lg disabled:opacity-50 wiggle-left-on-hover">{'<'}</button>
+    <span class="font-bold tracking-wider text-xs uppercase">{dateString(statuses[currIdx].date)}</span>
+    <button on:click={next} disabled={currIdx === statuses.length - 1} class="font-bold text-lg disabled:opacity-50 wiggle-right-on-hover">{'>'}</button>
   </div>
-  <div class="w-full rounded border border-stone-500 text-center">
+  <!-- <div class="w-full rounded border border-stone-500 text-center">
     {currIdx + 1} || {statuses.length}
-  </div>
+  </div> -->
   {/if}
 </div>
 
