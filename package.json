@@ -40,6 +40,6 @@
     "@cloudflare/workers-types": "^4.20240512.0",
     "@tailwindcss/typography": "^0.5.13",
     "@types/jsonwebtoken": "^9.0.6",
-    "wrangler": "^3.65.0"
+    "wrangler": "^4.23.0"
   }
 }
