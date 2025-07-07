@@ -174,7 +174,7 @@
         <h1 class="font-bold text-lg">
           {item.title}
         </h1>
-        <span class="text-sm font-bold tracking-wide text-[--dark-gray-color]">
+        <span class="text-sm font-bold tracking-wide text-[--applied-gray-color]">
           {item.type == 'poem' ? 'Poem' : 'Post'}
         </span>
         <p class="post-preview-text my-2">
@@ -201,7 +201,7 @@
     </div>
     {/if}
     <div class="border-t-2 border-[--dark-faint-border-color] py-4 flex items-center justify-between">
-      <span class="text-[--gray-color] text-sm">
+      <span class="text-[--applied-gray-color] text-sm">
         {count} result{count === 1 ? '' : 's'}
       </span>
       {#if count > 10}

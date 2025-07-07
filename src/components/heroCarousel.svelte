@@ -1,6 +1,6 @@
 <script lang="ts">
   import StatusComponent from "./status.svelte";
-  import { dateString } from "@lib/utils";
+  import { dateString, THEME_MAP } from "@lib/utils";
   import emblaCarouselSvelte from 'embla-carousel-svelte';
   import { type EmblaCarouselType } from 'embla-carousel';
   import { type selectStatus as Status } from "@db/schema";
@@ -22,6 +22,14 @@
     emblaApi = event.detail;
     emblaApi.on('select', () => {
       currIdx = emblaApi.selectedScrollSnap();
+      const newTheme = statuses[currIdx].theme;
+      if (newTheme) {
+        const thisHtml = document.documentElement;
+        thisHtml.style.backgroundColor = THEME_MAP[newTheme].background;
+        thisHtml.style.color = THEME_MAP[newTheme].color;
+        const appliedGrayColor = newTheme == 'light' ? '--gray-color' : `--${newTheme}-gray-color`;
+        thisHtml.style.setProperty('--applied-gray-color', `var(${appliedGrayColor})`);
+      }
     });
     emblaApi.on('settle', () => {
       const idx = emblaApi.selectedScrollSnap() + 2; // Fetching it early on to avoid the user experiencing the weird scroll rerender
@@ -48,9 +56,21 @@
     </div>
   </div>
   <div class="flex items-center gap-2">
-    <button on:click={prev} disabled={currIdx === 0} class="font-bold text-lg disabled:opacity-50 wiggle-left-on-hover">{'<'}</button>
-    <span class="font-bold tracking-wider text-xs uppercase">{dateString(statuses[currIdx].date)}</span>
-    <button on:click={next} disabled={currIdx === statuses.length - 1} class="font-bold text-lg disabled:opacity-50 wiggle-right-on-hover">{'>'}</button>
+    <button
+      on:click={prev} disabled={currIdx === 0}
+      class={`font-bold text-lg disabled:opacity-50 ${currIdx === 0 ? '' : 'wiggle-left-on-hover'}`}
+    >
+      {'<'}
+    </button>
+    <span class="font-bold tracking-wider text-xs">
+      Status on {dateString(statuses[currIdx].date)}
+    </span>
+    <button
+      on:click={next} disabled={currIdx === statuses.length - 1}
+      class={`font-bold text-lg disabled:opacity-50 ${currIdx === statuses.length - 1 ? '' : 'wiggle-right-on-hover'}`}
+    >
+      {'>'}
+    </button>
   </div>
   <!-- <div class="w-full rounded border border-stone-500 text-center">
     {currIdx + 1} || {statuses.length}

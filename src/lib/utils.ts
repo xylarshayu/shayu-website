@@ -68,9 +68,9 @@ export function getDefaultPostOrStatus<T extends 'post' | 'status'>(type: T): Da
   }
 };
 
-export async function getPostOrStatus<T extends 'post' | 'status'>(Astro: AstroGlobal, type: T): Promise<{ data: DataType<T>; mode: 'create' | 'update'; }> {
+export async function getPostOrStatus<T extends 'post' | 'status'>(Astro: AstroGlobal, type: T, latest?: boolean): Promise<{ data: DataType<T>; mode: 'create' | 'update'; }> {
   const uniqueKey = Astro.url.searchParams.get(type == 'post' ? 'slug' : 'id');
-  const getLatest = Astro.url.searchParams.get('getLatest') === 'true';
+  const getLatest = latest || Astro.url.searchParams.get('getLatest') === 'true';
   let data: DataType<T> = getDefaultPostOrStatus(type);
   let mode: 'create' | 'update' = 'create';
 
@@ -122,4 +122,11 @@ export async function getListOfPostsOrStatuses<T extends 'post' | 'status'>(urlO
   };
 
   return data;
+}
+
+export const THEME_MAP = {
+	dark: { color: 'var(--dark-pen-color)', background: 'var(--dark-screen-color)', gray: 'var(--dark-gray-color)' },
+	light: { color: 'var(--pen-color)', background: 'var(--screen-color)', gray: 'var(--gray-color)' },
+	red: { color: 'var(--red-pen-color)', background: 'var(--red-screen-color)', gray: 'var(--red-gray-color)' },
+	purple: { color: 'var(--purple-pen-color)', background: 'var(--purple-screen-color)', gray: 'var(--purple-gray-color)' },
 }

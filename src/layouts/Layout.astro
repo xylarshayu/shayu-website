@@ -3,27 +3,28 @@ import { ViewTransitions } from 'astro:transitions';
 import '@styles/global.css';
 import { checkLoggedIn } from "@lib/auth";
 import { type selectStatus as Status } from "@db/schema";
+import { getPostOrStatus, THEME_MAP } from '@lib/utils';
 import { GoogleFontsOptimizer } from "astro-google-fonts-optimizer";
-
-const THEME_MAP = {
-	dark: { color: 'var(--dark-pen-color)', background: 'var(--dark-screen-color)' },
-	light: { color: 'var(--pen-color)', background: 'var(--screen-color)' },
-	red: { color: 'var(--red-pen-color)', background: 'var(--red-screen-color)' },
-	purple: { color: 'var(--purple-pen-color)', background: 'var(--purple-screen-color)' },
-}
 
 interface Props {
 	title: string;
-	theme?: { color: string | undefined; background: string | undefined } | Status['theme'] | undefined;
+	theme?: { color: string | undefined; background: string | undefined, gray: string | null } | Status['theme'] | undefined;
+	fetchLatestStatus?: boolean;
 }
 
-const { title, theme = 'dark' } = Astro.props;
+let { title, theme = 'dark', fetchLatestStatus = true } = Astro.props;
+if (fetchLatestStatus) {
+	const { data: latestStatus } = await getPostOrStatus(Astro, 'status', true);
+	if (typeof theme == 'string') {
+		theme = latestStatus.theme || 'dark';
+	}
+}
 
-let htmlThemeStyle = 'linear-gradient(to bottom, var(--dark-base-color), transparent 45%)';
+let htmlThemeStyle;
 if (theme) {
 	const themeToApply = typeof theme === 'string' ? THEME_MAP[theme] : theme;
-	const { color, background } = themeToApply;
-	htmlThemeStyle = `${color ? `color: ${color};` : ''} ${background ? `background-color: ${background};` : ''}`;
+	const { color, background, gray } = themeToApply;
+	htmlThemeStyle = `${color ? `color: ${color};` : ''} ${background ? `background-color: ${background};` : ''} ${gray ? `--applied-gray-color: ${gray};` : ''}`;
 }
 
 const { isLoggedIn } = await checkLoggedIn(Astro.cookies);
@@ -42,7 +43,6 @@ const lock_svg_src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAW7
 		<meta name="generator" content={Astro.generator} />
 		<!-- <GoogleFontsOptimizer url="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" /> -->
 		<title>{title}</title>
-
 		<ViewTransitions />
 	</head>
 	<body>
@@ -83,6 +83,7 @@ const lock_svg_src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAW7
 <style is:global>
 	html {
 		font-family: system-ui, sans-serif;
+		transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
 	}
 	code {
 		font-family:

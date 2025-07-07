@@ -25,12 +25,14 @@
     --dark-faint-border-color: theme(colors.primary.800);
     --dark-not-selected-color: theme(colors.primary.600);
     /* Red theme */
-    --red-pen-color: theme(colors.rose.950);
-    --red-screen-color: theme(colors.red.900);
+    --red-pen-color: black;
+    --red-gray-color: theme(colors.stone.800);
+    --red-screen-color: theme(colors.red.500);
 
     /* Purple theme */
-    --purple-pen-color: theme(colors.slate.950);
-    --purple-screen-color: theme(colors.violet.700);
+    --purple-pen-color: black;
+    --purple-gray-color: theme(colors.stone.800);
+    --purple-screen-color: theme(colors.violet.500);
   }
 
   body {
