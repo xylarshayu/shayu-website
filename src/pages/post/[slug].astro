@@ -16,7 +16,7 @@ const theme = post.textColor || post.backgroundColor
   : undefined;
 ---
 
-<Layout title={post.title} theme={theme} fetchLatestStatus={false} obscureLogo={true}>
+<Layout title={post.title + ' - by shayu'} theme={theme} fetchLatestStatus={false} obscureLogo={true}>
   <div class="px-4 py-12 page-height w-[90%] md:w-[50%] mx-auto" style={"color: " + post.textColor + "; background-color: " + post.backgroundColor + ";"}>
     <PostViewer post={post} />
   </div>

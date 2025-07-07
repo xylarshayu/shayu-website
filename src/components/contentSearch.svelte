@@ -81,8 +81,8 @@
   };
 
   const textContent = (item: DataType<'post' | 'status'>) => {
-    let text = marked.parseInline(item.text?.replace(/\n/g, '<br />') ?? '');
-    return text.toString().replace(/#/g, '');
+    let text = marked(item.text?.replace(/\n/g, '<br />') ?? '');
+    return text.toString().replace(/#/g, '').replace(/&39;/g, '\'');
   };
 
 </script>
@@ -167,7 +167,7 @@
   <hr class="mt-1 mb-3 border-[--dark-faint-border-color]">
 
   {#if items.length}
-  {#each items as item}
+  {#each items as item (item.id + item.text)}
   {#key contentType + item.id}
     <a href={getHref(item)} target={contentType == 'post' ? undefined : '_blank'} class="border-b border-[--dark-faint-border-color] pb-3 pt-2 block">
       {#if isPost(item)} <!-- Type guard to reassure typescript that it's a post -->
