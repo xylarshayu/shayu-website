@@ -12,7 +12,7 @@
   export let page = 1;
   export let count = 0;
 
-  let justMounted = false; // Will set to true on $
+  let justMounted: null | string = null; // Will set to true on $
 
   const calculatePaginationOps = () => {
     let arr: (number | string)[] = [1];
@@ -41,7 +41,7 @@
     if (justMounted && (isCorrectDateConcise(options.before) || isCorrectDateConcise(options.after))) {
       handleSearch();
     }
-    justMounted = true;
+    justMounted =  new Date().toISOString();
   }
 
   const handleSearch = async (forContentType = contentType, postType: selectPost['type'] | undefined = undefined) => {
@@ -167,7 +167,7 @@
   <hr class="mt-1 mb-3 border-[--dark-faint-border-color]">
 
   {#if items.length}
-  {#each items as item (item.id + item.text)}
+  {#each items as item (`${item.id}-${item.text}-${justMounted}`)}
   {#key contentType + item.id}
     <a href={getHref(item)} target={contentType == 'post' ? undefined : '_blank'} class="border-b border-[--dark-faint-border-color] pb-3 pt-2 block">
       {#if isPost(item)} <!-- Type guard to reassure typescript that it's a post -->
@@ -228,7 +228,7 @@
 }
 .post-preview-text {
   --num-lines: 2;
-  --line-height: 1.4em;
+  --line-height: min(1.4em, 23px);
   text-align: justify;
   display: -webkit-box;
   -webkit-box-orient: vertical;

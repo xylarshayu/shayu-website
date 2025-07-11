@@ -11,7 +11,7 @@ const { isLoggedIn } = await checkLoggedIn(Astro.cookies);
 ---
 
 <Layout title="Shayu's Site" fetchLatestStatus={false} theme={statuses[0].theme}>
-	<main class="flex flex-col items-center justify-center page-height gap-1 relative border-y border-[--dark-faint-border-color]">
+	<main class="flex flex-col items-center justify-center page-height gap-1 border-y border-[--dark-faint-border-color]">
 		<div class="mt-2">
 			<HeroCarousel statuses={statuses} count={count} client:load />
 		</div>

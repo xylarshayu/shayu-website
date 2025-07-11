@@ -15,7 +15,7 @@
       </div>
     {/if}
   </div>
-  <div class="text-center">
+  <div class="text-center px-1">
     {@html marked(status.text ?? '')}
   </div>
   <div class="w-[300px] h-[80px]">
