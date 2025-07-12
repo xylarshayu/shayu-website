@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { cacheThis, CACHE_TAGS } from '@lib/utils';
 
 const NAMES = [
   '(Ayush) Wardhan',
@@ -17,6 +18,8 @@ const socialLinks = [
   { name: 'GitHub', url: 'https://github.com/xylarshayu' },
   { name: 'LinkedIn', url: 'https://www.linkedin.com/in/ayush-w-xylar' }
 ];
+
+cacheThis(Astro.response, CACHE_TAGS.INFO.TAG);
 ---
 
 <Layout title="Shayu's Site">
@@ -28,7 +31,7 @@ const socialLinks = [
           I am <span id="shayu-text">shayu</span>. You may also know me as
           {
             NAMES.map((name, i) => (<>
-            <code>{name}</code>
+            <code class="shayu-alias">{name}</code>
             { i < NAMES.length - 2 ? ', ' : (i === NAMES.length - 2 ? ' and ' : '')}
           </>))}.
         </p>

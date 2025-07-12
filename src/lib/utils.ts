@@ -138,6 +138,7 @@ const t_u = (tag: string, urls: string[]) => {
 export const CACHE_TAGS = {
   HOME: t_u('home', ['/']),
   STATUS: t_u('status', ['/api/status.json', '/api/statuses.json']),
+  INFO: t_u('info', ['/info']),
   CONTENT_SEARCH: t_u('content-search', ['/api/posts.json', '/search']),
   SLUG: t_u('slug-$slug', ['/search', '/post/$slug'])
 };

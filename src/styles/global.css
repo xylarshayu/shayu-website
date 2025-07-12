@@ -71,6 +71,12 @@
     animation: pulse-shadow 1s infinite alternate;
   }
 
+  .shayu-alias {
+    color: black;
+    text-shadow: var(--shayu-text-shadow);
+    animation: pulse-shadow 1s infinite alternate;
+  }
+
   .page-height {
     min-height: calc(100svh - (2 * var(--header-nav-height)));
   }

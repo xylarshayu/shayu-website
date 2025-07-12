@@ -43,7 +43,7 @@ export const POST: APIRoute = async (context: APIContext) => {
       .values({ text, theme, mood, spotify_link, image })
       .returning();
 
-    await cacheRebuild(context.url.origin, [CACHE_TAGS.STATUS, CACHE_TAGS.HOME]);
+    await cacheRebuild(context.url.origin, [CACHE_TAGS.STATUS, CACHE_TAGS.HOME, CACHE_TAGS.INFO, CACHE_TAGS.CONTENT_SEARCH]);
 
     return new Response(JSON.stringify(query[0]));
   }
