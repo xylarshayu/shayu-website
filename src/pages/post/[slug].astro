@@ -3,6 +3,7 @@ import Layout from "@layouts/Layout.astro";
 import PostViewer from "@components/post.svelte";
 import { type selectPost } from "@db/schema";
 const { slug } = Astro.params;
+import { cacheThis, CACHE_TAGS } from '@lib/utils';
 
 const post: selectPost = await fetch(Astro.url.origin + '/api/post/' + slug + '.json').then(res => res.json());
 if (!post) return Astro.redirect('/404');
@@ -14,6 +15,8 @@ const theme = post.textColor || post.backgroundColor
       gray: null
     }
   : undefined;
+
+cacheThis(Astro.response, CACHE_TAGS.SLUG.TAG.replace('$slug', post.slug));
 ---
 
 <Layout title={post.title + ' - by shayu'} theme={theme} fetchLatestStatus={false} obscureLogo={true}>

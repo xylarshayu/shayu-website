@@ -3,7 +3,7 @@ import { isNull, eq, and, DrizzleError } from "drizzle-orm";
 import { checkLoggedIn } from "@lib/auth";
 import { getDb } from "@db/index";
 import { statusTable, type insertStatus } from "@db/schema";
-import { isValidImageUrl } from "@lib/utils";
+import { isValidImageUrl, CACHE_TAGS, cacheRebuild } from "@lib/utils";
 
 export const GET: APIRoute = async (context: APIContext) => {
   try {
@@ -53,6 +53,8 @@ export const PATCH: APIRoute = async (context: APIContext) => {
       .returning();
     if (!status[0]) return new Response("Not found", { status: 404 });
     
+    cacheRebuild(context.url.origin, [CACHE_TAGS.HOME, CACHE_TAGS.STATUS]);
+
     return new Response(JSON.stringify(status[0]));
   }
   catch (error) {
@@ -81,7 +83,7 @@ export const DELETE: APIRoute = async (context: APIContext) => {
       )
       .returning();
     if (!status[0]) return new Response("Not found", { status: 404 });
-  
+    cacheRebuild(context.url.origin, [CACHE_TAGS.HOME, CACHE_TAGS.STATUS]);
     return new Response(null, { status: 204 });
   }
   catch (error) {

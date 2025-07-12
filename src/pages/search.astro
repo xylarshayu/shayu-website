@@ -2,7 +2,7 @@
 import Layout from "@layouts/Layout.astro";
 import ContentSearch from "@components/contentSearch.svelte";
 import { checkLoggedIn } from "@lib/auth";
-import { getListOfPostsOrStatuses } from "@lib/utils";
+import { getListOfPostsOrStatuses, CACHE_TAGS, cacheThis } from "@lib/utils";
 
 const { isLoggedIn } = await checkLoggedIn(Astro.cookies);
 
@@ -16,6 +16,8 @@ const options: { [key: string]: string | undefined | null } = {};
 const page = Number(Astro.url.searchParams.get('page') ?? '1');
 
 const { items, count } = await getListOfPostsOrStatuses(Astro.url.origin, contentType, true, page, options);
+
+cacheThis(Astro.response, CACHE_TAGS.CONTENT_SEARCH.TAG);
 ---
 
 <Layout title="Search">

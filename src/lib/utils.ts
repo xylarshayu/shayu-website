@@ -129,4 +129,103 @@ export const THEME_MAP = {
 	light: { color: 'var(--pen-color)', background: 'var(--screen-color)', gray: 'var(--gray-color)' },
 	red: { color: 'var(--red-pen-color)', background: 'var(--red-screen-color)', gray: 'var(--red-gray-color)' },
 	purple: { color: 'var(--purple-pen-color)', background: 'var(--purple-screen-color)', gray: 'var(--purple-gray-color)' },
+};
+
+const t_u = (tag: string, urls: string[]) => {
+  return { TAG: tag, URLs: urls };
+};
+
+export const CACHE_TAGS = {
+  HOME: t_u('home', ['/']),
+  STATUS: t_u('status', ['/api/status.json', '/api/statuses.json']),
+  CONTENT_SEARCH: t_u('content-search', ['/api/posts.json', '/search']),
+  SLUG: t_u('slug-$slug', ['/search', '/post/$slug'])
+};
+
+export function cacheThis(response: { readonly headers: Headers }, tag: string, browserAge: number = 300, cfCdnAge: number = 2419200) {
+  if (import.meta.env.DEV) {
+    console.log(`Cache set for tag: ${tag}, browserAge: ${browserAge}, cfCdnAge: ${cfCdnAge}`);
+  }
+  response.headers.set('Cache-Control', `public, max-age=${browserAge}`);
+  response.headers.set('Cloudflare-CDN-Cache-Control', `public, max-age=${cfCdnAge}`);
+  response.headers.set('Cache-Tag', tag);
 }
+
+export async function purgeCache(tags: string[]) {
+  if (import.meta.env.DEV) {
+    console.log('Purging cache in development mode is skipped.');
+    return;
+  }
+  if (import.meta.env.CF_API_KEY && import.meta.env.CF_API_EMAIL && import.meta.env.CF_ZONE_ID) {
+    try {
+      const response = await fetch(
+        `https://api.cloudflare.com/client/v4/zones/${import.meta.env.CF_ZONE_ID}/purge_cache`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Auth-Email': import.meta.env.CF_API_EMAIL,
+            'X-Auth-Key': import.meta.env.CF_API_KEY,
+          },
+          body: JSON.stringify({ tags }),
+        }
+      );
+      
+      if (!response.ok) {
+        console.error('Failed to purge cache:', await response.text());
+      }
+    } catch (error) {
+      console.error('Error purging cache:', error);
+    }
+  } else {
+    console.warn('Cloudflare API credentials are not set. Cache purge skipped.');
+  }
+}
+
+export async function warmCache(urls: string[]) {
+  if (import.meta.env.DEV) {
+    console.log('Warming cache in development mode is skipped.');
+    return;
+  }
+  try {
+    await Promise.all(urls.map(url => fetch(url)));
+  } catch (error) { 
+    console.error('Error warming cache:', error);
+  }
+}
+
+const doReplaceDynamic = (str: string, replaceDynamic?: [string, string][]) => {
+  if (!replaceDynamic?.length) return str;
+  let result = str;
+  replaceDynamic.forEach(([searchValue, replaceValue]) => {
+    result = result.replace(new RegExp(searchValue, 'g'), replaceValue);
+  });
+  return result;
+};
+
+export async function cacheRebuild(originUrl: string, tagInfo: { TAG: string, URLs: string[] }[], replaceDynamic?: [string, string][]) {
+  const thisTagInfo = tagInfo.map(tag => {
+    const TAG = doReplaceDynamic(tag.TAG, replaceDynamic);
+    const URLs = tag.URLs.map(url => {
+      url = doReplaceDynamic(url, replaceDynamic);
+      if (url == '/') {
+        return originUrl;
+      } else {
+        return originUrl + url.replace(/^\//, ''); // Ensure no leading slash
+      }
+    })
+    return { TAG, URLs };
+  });
+
+  if (import.meta.env.DEV) {
+    console.log(`Cache rebuild for tag(s) ${thisTagInfo.map(t => t.TAG).join(', ')} in development mode is skipped.`);
+    return;
+  }
+  const theseUrls = [...new Set(thisTagInfo.flatMap(tag => tag.URLs))];
+  try {
+    await purgeCache(thisTagInfo.map(tag => tag.TAG));
+    await warmCache(theseUrls);
+  } catch (error) {
+    console.error(`Error during cache rebuild for tag ${thisTagInfo.map(t => t.TAG).join(', ')}:`, error);
+  }
+};

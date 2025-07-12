@@ -2,6 +2,7 @@ import type { APIRoute, APIContext } from "astro";
 import { desc, isNull, count, DrizzleError, like, and, gte, lte, between } from "drizzle-orm";
 import { getDb } from "@db/index";
 import { statusTable } from "@db/schema";
+import { CACHE_TAGS, cacheThis } from "@lib/utils";
 import dayjs from "dayjs";
 
 export const GET: APIRoute = async (context: APIContext) => {
@@ -40,8 +41,10 @@ export const GET: APIRoute = async (context: APIContext) => {
       .where(whereSQLquery) : Promise.resolve([{ count: 0 }]);
   
     const [statuses, totalCount] = await Promise.all([statusQuery, countQuery]);
-    
-    return new Response(JSON.stringify({ statuses, count: totalCount[0].count }));
+
+    const response = new Response(JSON.stringify({ statuses, count: totalCount[0].count }));
+    cacheThis(response, CACHE_TAGS.HOME.TAG);
+    return response;
   }
   catch (error) {
     console.error(error);

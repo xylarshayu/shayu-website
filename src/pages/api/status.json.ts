@@ -3,7 +3,7 @@ import { desc, isNull, DrizzleError } from "drizzle-orm";
 import { getDb } from "@db/index";
 import { statusTable, type insertStatus } from "@db/schema";
 import { checkLoggedIn } from "@lib/auth";
-import { isValidImageUrl } from "@lib/utils";
+import { isValidImageUrl, CACHE_TAGS, cacheThis, cacheRebuild } from "@lib/utils";
 
 export const GET: APIRoute = async (context: APIContext) => {
   try {
@@ -15,7 +15,9 @@ export const GET: APIRoute = async (context: APIContext) => {
       .orderBy(desc(statusTable.date))
       .limit(1);
     const status = query[0];
-    return new Response(JSON.stringify(status));
+    const response = new Response(JSON.stringify(status));
+    cacheThis(response, CACHE_TAGS.STATUS.TAG);
+    return response;
   }
   catch (error) {
     console.error(error);
@@ -40,6 +42,8 @@ export const POST: APIRoute = async (context: APIContext) => {
       .insert(statusTable)
       .values({ text, theme, mood, spotify_link, image })
       .returning();
+
+    cacheRebuild(context.url.origin, [CACHE_TAGS.STATUS, CACHE_TAGS.HOME]);
 
     return new Response(JSON.stringify(query[0]));
   }

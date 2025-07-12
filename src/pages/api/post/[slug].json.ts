@@ -3,7 +3,7 @@ import { isNull, DrizzleError, and, eq } from "drizzle-orm";
 import { getDb } from "@db/index";
 import { postTable, type selectPost } from "@db/schema";
 import { checkLoggedIn } from "@lib/auth";
-import { isValidImageUrl } from "@lib/utils";
+import { isValidImageUrl, cacheThis, CACHE_TAGS, cacheRebuild, purgeCache } from "@lib/utils";
 
 export const GET: APIRoute = async (context: APIContext) => {
   try {
@@ -19,7 +19,9 @@ export const GET: APIRoute = async (context: APIContext) => {
       ))
       .limit(1);
     const status = query[0];
-    return new Response(JSON.stringify(status));
+    const response = new Response(JSON.stringify(status));
+    cacheThis(response, CACHE_TAGS.SLUG.TAG.replace('$slug', slug));
+    return response;
   }
   catch (error) {
     console.error(error);
@@ -52,6 +54,7 @@ export const PATCH: APIRoute = async (context: APIContext) => {
       )
       .returning();
     if (!query[0]) return new Response("Not found", { status: 404 });
+    cacheRebuild(context.url.origin, [CACHE_TAGS.CONTENT_SEARCH, CACHE_TAGS.SLUG], [['$slug', slug]]);
     return new Response(JSON.stringify(query[0]));
   }
   catch (error) {
@@ -82,7 +85,7 @@ export const DELETE: APIRoute = async (context: APIContext) => {
       )
       .returning();
     if (!query[0]) return new Response("Not found", { status: 404 });
-    
+    purgeCache([CACHE_TAGS.CONTENT_SEARCH.TAG, CACHE_TAGS.SLUG.TAG.replace('$slug', slug)]);
     return new Response(null, { status: 204 });
   }
   catch (error) {
