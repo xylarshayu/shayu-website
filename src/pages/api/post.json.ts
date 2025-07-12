@@ -56,7 +56,7 @@ export const POST: APIRoute = async (context: APIContext) => {
       .insert(postTable)
       .values({ title, slug, text, type, image, textColor, backgroundColor })
       .returning();
-    cacheRebuild(context.url.origin, [CACHE_TAGS.CONTENT_SEARCH, CACHE_TAGS.SLUG], [['$slug', slug]]);
+    await cacheRebuild(context.url.origin, [CACHE_TAGS.CONTENT_SEARCH, CACHE_TAGS.SLUG], [['$slug', slug]]);
     return new Response(JSON.stringify(query[0]));
   } 
   catch (error) {

@@ -54,7 +54,7 @@ export const PATCH: APIRoute = async (context: APIContext) => {
       )
       .returning();
     if (!query[0]) return new Response("Not found", { status: 404 });
-    cacheRebuild(context.url.origin, [CACHE_TAGS.CONTENT_SEARCH, CACHE_TAGS.SLUG], [['$slug', slug]]);
+    await cacheRebuild(context.url.origin, [CACHE_TAGS.CONTENT_SEARCH, CACHE_TAGS.SLUG], [['$slug', slug]]);
     return new Response(JSON.stringify(query[0]));
   }
   catch (error) {
@@ -85,7 +85,7 @@ export const DELETE: APIRoute = async (context: APIContext) => {
       )
       .returning();
     if (!query[0]) return new Response("Not found", { status: 404 });
-    purgeCache([CACHE_TAGS.CONTENT_SEARCH.TAG, CACHE_TAGS.SLUG.TAG.replace('$slug', slug)]);
+    await purgeCache([CACHE_TAGS.CONTENT_SEARCH.TAG, CACHE_TAGS.SLUG.TAG.replace('$slug', slug)]);
     return new Response(null, { status: 204 });
   }
   catch (error) {

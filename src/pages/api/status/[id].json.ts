@@ -53,7 +53,7 @@ export const PATCH: APIRoute = async (context: APIContext) => {
       .returning();
     if (!status[0]) return new Response("Not found", { status: 404 });
     
-    cacheRebuild(context.url.origin, [CACHE_TAGS.HOME, CACHE_TAGS.STATUS]);
+    await cacheRebuild(context.url.origin, [CACHE_TAGS.HOME, CACHE_TAGS.STATUS]);
 
     return new Response(JSON.stringify(status[0]));
   }
@@ -83,7 +83,7 @@ export const DELETE: APIRoute = async (context: APIContext) => {
       )
       .returning();
     if (!status[0]) return new Response("Not found", { status: 404 });
-    cacheRebuild(context.url.origin, [CACHE_TAGS.HOME, CACHE_TAGS.STATUS]);
+    await cacheRebuild(context.url.origin, [CACHE_TAGS.HOME, CACHE_TAGS.STATUS]);
     return new Response(null, { status: 204 });
   }
   catch (error) {
