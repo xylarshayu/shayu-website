@@ -156,16 +156,16 @@ export async function purgeCache(tags: string[]) {
     console.log('Purging cache in development mode is skipped.');
     return;
   }
-  if (import.meta.env.CF_API_KEY && import.meta.env.CF_API_EMAIL && import.meta.env.CF_ZONE_ID) {
+  if (import.meta.env.CLOUDFLARE_API_KEY && import.meta.env.CLOUDFLARE_EMAIL && import.meta.env.CLOUDFLARE_ZONE_ID) {
     try {
       const response = await fetch(
-        `https://api.cloudflare.com/client/v4/zones/${import.meta.env.CF_ZONE_ID}/purge_cache`,
+        `https://api.cloudflare.com/client/v4/zones/${import.meta.env.CLOUDFLARE_ZONE_ID}/purge_cache`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-Auth-Email': import.meta.env.CF_API_EMAIL,
-            'X-Auth-Key': import.meta.env.CF_API_KEY,
+            'X-Auth-Email': import.meta.env.CLOUDFLARE_EMAIL,
+            'X-Auth-Key': import.meta.env.CLOUDFLARE_API_KEY,
           },
           body: JSON.stringify({ tags }),
         }
