@@ -30,3 +30,20 @@ export const postTable = sqliteTable("posts", {
 
 export type selectPost = InferSelectModel<typeof postTable>;
 export type insertPost = InferInsertModel<typeof postTable>;
+
+export const subscriptionsTable = sqliteTable("subscriptions", {
+  id: integer('id', { mode: 'number' }).primaryKey({autoIncrement: true}),
+  endpoint: text('endpoint', { length: 1024 }).notNull(),
+  p256dh: text('p256dh').notNull(),
+  auth: text('auth').notNull(),
+  created_at: integer('created_at', {mode: 'timestamp_ms'}).notNull().$default(() => new Date()),
+  user_id: integer('user_id'),
+  _deleted_at: integer('_deleted_at', {mode: 'timestamp_ms'}),
+}, (table) => {
+  return {
+    endpointIndex: uniqueIndex("subscriptions_endpoint_unique").on(table.endpoint),
+  }
+});
+
+export type selectSubscription = InferSelectModel<typeof subscriptionsTable>;
+export type insertSubscription = InferInsertModel<typeof subscriptionsTable>;

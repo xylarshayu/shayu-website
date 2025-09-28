@@ -1,6 +1,11 @@
 import dayjs from "dayjs";
-import { type AstroGlobal } from "astro";
+import { type APIContext, type AstroGlobal } from "astro";
 import { type insertStatus, type insertPost, statusTable, postTable } from "@db/schema";
+import type { D1Database } from "@cloudflare/workers-types";
+import { getDb } from "@db/index";
+import { subscriptionsTable } from "@db/schema";
+import { buildPushPayload, type PushSubscription, type PushMessage, type VapidKeys } from "@block65/webcrypto-web-push";
+import { inArray } from "drizzle-orm";
 
 export function dateString(date: Date) {
   return dayjs(date).format("hh:mm A [on] MMM D, YYYY");
@@ -230,3 +235,75 @@ export async function cacheRebuild(originUrl: string, tagInfo: { TAG: string, UR
     console.error(`Error during cache rebuild for tag ${thisTagInfo.map(t => t.TAG).join(', ')}:`, error);
   }
 };
+const vapidKeys: VapidKeys = {
+  subject: import.meta.env.VAPID_SUBJECT,
+  publicKey: import.meta.env.PUBLIC_VAPID_PUBLIC_KEY,
+  privateKey: import.meta.env.VAPID_PRIVATE_KEY,
+};
+
+export async function sendNotifications(db: D1Database, title: string, body: string, url: string = '/', batchSize: number, page: number = 0, options?: Partial<PushMessage['options']>) {
+  const defaultOptions: PushMessage['options'] = { ttl: 60 };
+  const messageOptions = { ...defaultOptions, ...options };
+
+  const offset = page * batchSize;
+  const subscriptions = await getDb(db).select().from(subscriptionsTable).limit(batchSize).offset(offset);
+
+  const failedIds: number[] = [];
+
+  const notifications = subscriptions.map(async (s) => {
+    if (s._deleted_at !== null) return; // Skip deleted subscriptions
+    const subscription: PushSubscription = {
+      endpoint: s.endpoint,
+      expirationTime: null,
+      keys: {
+        p256dh: s.p256dh,
+        auth: s.auth,
+      },
+    };
+    const message: PushMessage = {
+      data: { title, body, url },
+      options: messageOptions,
+    };
+    try {
+      const payload = await buildPushPayload(message, subscription, vapidKeys);
+      const response = await fetch(subscription.endpoint, { ...payload, body: payload.body.buffer as BodyInit });
+      if (response.status === 410 || response.status === 404) {
+        failedIds.push(s.id);
+      } else if (!response.ok) {
+        console.error("Server error sending notification:", response.status, response.statusText);
+      }
+      // const responseBody = await response.text();
+      // console.log("Notification sent, status:", response.status, " ", response.statusText, " ", responseBody);
+    } catch (error) {
+      console.error("Error sending notification:", error);
+    }
+  });
+
+  await Promise.allSettled(notifications);
+
+  const deletePromise = failedIds.length > 0 ? getDb(db).update(subscriptionsTable).set({_deleted_at: new Date()}).where(inArray(subscriptionsTable.id, failedIds)) : Promise.resolve();
+
+  return { notifications: Promise.all([...notifications, deletePromise]), count: subscriptions.length };
+}
+
+export async function invokeNotifPusher(context: APIContext, title: string, body: string, batchSize: number | string, url: string = '/') {
+  const authToken = context.cookies.get('auth_token');
+  if (!authToken) {
+    console.warn('No auth token found. Notification pusher not invoked.');
+    return;
+  }
+  try {
+    const notifUrl = new URL(context.url.origin + '/api/subscribe.json');
+    notifUrl.searchParams.set('title', title);
+    notifUrl.searchParams.set('body', body);
+    notifUrl.searchParams.set('url', url);
+    notifUrl.searchParams.set('batchSize', batchSize.toString());
+    await fetch(notifUrl.toString(), {
+      headers: {
+        'Cookie': `auth_token=${authToken.value}`
+      }
+    });
+  } catch (error) {
+    console.error('Error invoking notification pusher:', error);
+  }
+}
