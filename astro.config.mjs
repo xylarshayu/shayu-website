@@ -17,12 +17,16 @@ export default defineConfig({
     define: {
       global: 'globalThis'
     },
-    optimizeDeps: {
-      exclude: ['@block65/webcrypto-web-push']
-    },
     ssr: {
-      noExternal: ['@block65/webcrypto-web-push']
-    }
+      external: ['node:crypto']
+    },
+    optimizeDeps: {
+      esbuildOptions: { target: 'esnext' },
+      // exclude: ['@block65/webcrypto-web-push']
+    },
+    // ssr: {
+    //   noExternal: ['@block65/webcrypto-web-push']
+    // }
   },
   adapter: cloudflare({
     platformProxy: {

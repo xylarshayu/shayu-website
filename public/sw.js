@@ -1,9 +1,17 @@
+self.addEventListener('install', function (event) {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', function (event) {
+  event.waitUntil(self.clients.claim());
+});
+
 
 self.addEventListener('push', function (event) {
   const data = event.data.json();
   const options = {
     body: data.body,
-    icon: '/shayu_imp.svg',
+    icon: '/shayu-circle.svg',
     badge: '/shayu_imp.svg',
     tag: 'shayu-update',
     data: {
