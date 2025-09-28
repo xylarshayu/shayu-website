@@ -1,7 +1,7 @@
 import type { APIRoute, APIContext } from "astro";
 import { getDb } from "@db/index";
 import { subscriptionsTable, type insertSubscription } from "@db/schema";
-import { DrizzleError, isNotNull } from "drizzle-orm";
+import { DrizzleError, isNotNull, eq } from "drizzle-orm";
 import type { D1Database } from "@cloudflare/workers-types";
 import { sendNotifications } from "@lib/utils";
 import { checkLoggedIn } from "@lib/auth";
@@ -17,6 +17,36 @@ export const POST: APIRoute = async (context: APIContext) => {
       .values({ endpoint, p256dh, auth })
       .returning();
     return new Response(JSON.stringify(query[0]));
+  }
+  catch (error) {
+    console.error(error);
+    if (error instanceof DrizzleError) {
+      return new Response("Bad request: " + error.message, { status: 400 });
+    }
+    else return new Response("Internal server error", { status: 500 });
+  }
+}
+
+export const DELETE: APIRoute = async (context: APIContext) => {
+  try {
+    const db = getDb(context.locals.runtime.env.DB);
+    const body: { endpoint: string } = await context.request.json();
+    const { endpoint } = body;
+
+    if (!endpoint) {
+      return new Response("Bad request: missing endpoint", { status: 400 });
+    }
+
+    const query = await db
+      .delete(subscriptionsTable)
+      .where(eq(subscriptionsTable.endpoint, endpoint))
+      .returning();
+
+    if (query.length === 0) {
+      return new Response("Subscription not found", { status: 404 });
+    }
+
+    return new Response(JSON.stringify({ success: true, deleted: query[0] }));
   }
   catch (error) {
     console.error(error);

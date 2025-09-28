@@ -47,6 +47,7 @@ cacheThis(Astro.response, CACHE_TAGS.INFO.TAG);
         </p>
         <p class="italic">
           <a id="subscribe" class="cursor-pointer underline" style="color: inherit;">Want to stay posted?</a>
+          <a id="unsubscribe" class="cursor-pointer underline" style="color: inherit; margin-left: 0.25ch; display: none;">Opt out?</a>
         </p>
       </article>
     </main>
@@ -56,9 +57,10 @@ cacheThis(Astro.response, CACHE_TAGS.INFO.TAG);
 <script>
   const BUTTON_TEXTS = {
     DEFAULT: 'Want to stay posted?',
-    SUBSCRIBED: "You will be kept posted",
+    SUBSCRIBED: "You will be kept posted.",
     SUBSCRIBING: 'Un momento, por favor...',
     SUBSCRIPTION_FAILED: 'Alas, there be trouble looping ye in',
+    UNSUBSCRIBING: 'Hmm oki',
     BLOCKED: 'Gotta "Enable Notifs" first to stay posted',
     UNSUPPORTED: 'N/A',
     SERVICE_WORKER_UNAVAILABLE: 'Hrmm...',
@@ -66,6 +68,7 @@ cacheThis(Astro.response, CACHE_TAGS.INFO.TAG);
   }
 
   const subscribeButton = document.getElementById('subscribe');
+  const unsubscribeButton = document.getElementById('unsubscribe');
 
   // Helper function for dev-only console logs
   const devLog = (...args: any[]) => {
@@ -82,18 +85,28 @@ cacheThis(Astro.response, CACHE_TAGS.INFO.TAG);
     if (disabled) {
       subscribeButton.style.pointerEvents = 'none';
       subscribeButton.style.textDecoration = 'none';
+    } else {
+      subscribeButton.style.pointerEvents = 'auto';
+      subscribeButton.style.textDecoration = 'underline';
     }
     if (!present) {
       subscribeButton.style.display = 'none';
+    } else {
+      subscribeButton.style.display = 'inline';
+    }
+
+    if (text === BUTTON_TEXTS.SUBSCRIBED && unsubscribeButton) {
+      unsubscribeButton.style.display = 'inline';
+    } else if (unsubscribeButton) {
+      unsubscribeButton.style.display = 'none';
     }
   };
 
-  // Helper function to check browser support
+
   const checkNotificationSupport = (): boolean => {
     return 'serviceWorker' in navigator && 'PushManager' in window;
   };
 
-  // Helper function to register service worker
   const registerServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
     if (!checkNotificationSupport()) return null;
 
@@ -128,7 +141,6 @@ cacheThis(Astro.response, CACHE_TAGS.INFO.TAG);
     }
   };
 
-  // Check subscription status on page load
   const checkSubscriptionStatus = async () => {
     if (!subscribeButton) return;
 
@@ -164,12 +176,11 @@ cacheThis(Astro.response, CACHE_TAGS.INFO.TAG);
       }
 
       if (existingSubscription) {
-        // User is subscribed
         updateButtonState(BUTTON_TEXTS.SUBSCRIBED, true);
         return;
       }
 
-      if (permission === 'granted') {
+      if (permission === 'granted' && !localStorage.getItem('push-unsubscribed-at')) {
         // Permission granted but no subscription (likely expired)
         updateButtonState(BUTTON_TEXTS.REFRESHING, true);
         await handleSubscribe();
@@ -187,6 +198,8 @@ cacheThis(Astro.response, CACHE_TAGS.INFO.TAG);
 
   const handleSubscribe = async () => {
     if (!subscribeButton) return;
+
+    updateButtonState(BUTTON_TEXTS.SUBSCRIBING, true);
 
     if (!checkNotificationSupport()) {
       updateButtonState(BUTTON_TEXTS.UNSUPPORTED, true, false);
@@ -281,14 +294,65 @@ cacheThis(Astro.response, CACHE_TAGS.INFO.TAG);
       });
 
       updateButtonState(BUTTON_TEXTS.SUBSCRIBED, true);
-      subscribeButton.removeEventListener('click', handleSubscribe);
+      localStorage.removeItem('push-unsubscribed-at');
+      devLog('Successfully subscribed and registered on server');
     } catch (error) {
       console.error('Failed to subscribe', error);
       updateButtonState(BUTTON_TEXTS.SUBSCRIPTION_FAILED, false);
     }
   };
 
+  // Handle unsubscribe functionality
+  const handleUnsubscribe = async () => {
+    if (!unsubscribeButton) return;
+
+    updateButtonState(BUTTON_TEXTS.UNSUBSCRIBING, true);
+
+    try {
+      const registration = await navigator.serviceWorker.getRegistration('/sw.js');
+      if (!registration) {
+        throw new Error('Service worker not registered');
+      }
+
+      const subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        throw new Error('No subscription found');
+      }
+
+      const subObject = subscription.toJSON();
+      // Call DELETE endpoint to remove subscription from server
+      await fetch('/api/subscribe.json', {
+        method: 'DELETE',
+        body: JSON.stringify({
+          endpoint: subObject.endpoint
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      // Unsubscribe from push notifications
+      await subscription.unsubscribe()
+        .then((successful) => {
+          devLog('Unsubscription successful:', successful);
+          if (successful) localStorage.setItem('push-unsubscribed-at', new Date().toISOString());
+          return successful;
+        })
+        .catch((err) => {
+          console.error('Failed to unsubscribe from push', err);
+          return false;
+        });
+      
+      updateButtonState(BUTTON_TEXTS.DEFAULT, false);
+    } catch (error) {
+      console.error('Failed to unsubscribe:', error);
+
+      updateButtonState(BUTTON_TEXTS.SUBSCRIPTION_FAILED, true);
+    }
+  };
+
   // Check subscription status on page load
   checkSubscriptionStatus();
   subscribeButton?.addEventListener('click', handleSubscribe);
+  unsubscribeButton?.addEventListener('click', handleUnsubscribe);
 </script>
