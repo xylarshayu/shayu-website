@@ -13,6 +13,10 @@ type Env = {
 	CLOUDFLARE_API_KEY: string,
 	CLOUDFLARE_EMAIL: string,
 	CLOUDFLARE_ZONE_ID: string,
+ 	BATCH_SIZE: number,
+	VAPID_SUBJECT: string,
+	PUBLIC_VAPID_PUBLIC_KEY: string,
+	VAPID_PRIVATE_KEY: string,
 };
 
 type Runtime = import("@astrojs/cloudflare").Runtime<Env>;

@@ -3,7 +3,7 @@ import { desc, isNull, DrizzleError, eq, and } from "drizzle-orm";
 import { getDb } from "@db/index";
 import { postTable, type insertPost } from "@db/schema";
 import { checkLoggedIn } from "@lib/auth";
-import { isValidImageUrl, CACHE_TAGS, cacheThis, cacheRebuild } from "@lib/utils";
+import { isValidImageUrl, CACHE_TAGS, cacheThis, cacheRebuild, invokeNotifPusher } from "@lib/utils";
 
 export const GET: APIRoute = async (context: APIContext) => {
   try {
@@ -56,7 +56,11 @@ export const POST: APIRoute = async (context: APIContext) => {
       .insert(postTable)
       .values({ title, slug, text, type, image, textColor, backgroundColor })
       .returning();
-    await cacheRebuild(context.url.origin, [CACHE_TAGS.CONTENT_SEARCH, CACHE_TAGS.SLUG], [['$slug', slug]]);
+    const post = query[0];
+    const postUrl = `/post/${post.slug}`;
+    const notificationPromise = invokeNotifPusher(context, `New ${type} by shayu`, title, import.meta.env.BATCH_SIZE, postUrl).catch(console.error);
+    const cachePromise = cacheRebuild(context.url.origin, [CACHE_TAGS.CONTENT_SEARCH, CACHE_TAGS.SLUG], [['$slug', slug]]);
+    context.locals.runtime.ctx.waitUntil(Promise.all([notificationPromise, cachePromise]));
     return new Response(JSON.stringify(query[0]));
   } 
   catch (error) {

@@ -38,14 +38,321 @@ cacheThis(Astro.response, CACHE_TAGS.INFO.TAG);
         <p>
           Feel free to find me elsewhere on the internet: 
           { socialLinks.map((link, i) => (<>
-            <a href={link.url} class="underline italic cursor-pointer" target="_blank" rel="noopener noreferrer">
+            <a href={link.url} class="underline italic cursor-pointer text-inherit" target="_blank" rel="noopener noreferrer">
               {link.name}
             </a>
             {', '}
           </>)) }
           etc.
         </p>
+        <p class="italic">
+          <a id="subscribe" class="cursor-pointer underline" style="color: inherit;">Want to stay posted?</a>
+          <a id="unsubscribe" class="cursor-pointer underline" style="color: inherit; margin-left: 0.25ch; display: none;">Opt out?</a>
+        </p>
       </article>
     </main>
   </div>
 </Layout>
+
+<script>
+  const BUTTON_TEXTS = {
+    DEFAULT: 'Want to stay posted?',
+    SUBSCRIBED: "You will be kept posted.",
+    SUBSCRIBING: 'Un momento, por favor...',
+    SUBSCRIPTION_FAILED: 'Alas, there be trouble looping ye in',
+    UNSUBSCRIBING: 'Hmm oki',
+    BLOCKED: 'Gotta "Enable Notifs" first to stay posted',
+    UNSUPPORTED: 'N/A',
+    SERVICE_WORKER_UNAVAILABLE: 'Hrmm...',
+    REFRESHING: 'Lemme get ya back in the loop...',
+  }
+
+  const subscribeButton = document.getElementById('subscribe');
+  const unsubscribeButton = document.getElementById('unsubscribe');
+
+  // Helper function for dev-only console logs
+  const devLog = (...args: any[]) => {
+    if (import.meta.env.DEV) {
+      console.log(...args);
+    }
+  };
+
+  // Helper function to update button state
+  const updateButtonState = (text: typeof BUTTON_TEXTS[keyof typeof BUTTON_TEXTS], disabled: boolean = true, present: boolean = true) => {
+    if (!subscribeButton) return;
+
+    subscribeButton.innerText = text;
+    if (disabled) {
+      subscribeButton.style.pointerEvents = 'none';
+      subscribeButton.style.textDecoration = 'none';
+    } else {
+      subscribeButton.style.pointerEvents = 'auto';
+      subscribeButton.style.textDecoration = 'underline';
+    }
+    if (!present) {
+      subscribeButton.style.display = 'none';
+    } else {
+      subscribeButton.style.display = 'inline';
+    }
+
+    if (text === BUTTON_TEXTS.SUBSCRIBED && unsubscribeButton) {
+      unsubscribeButton.style.display = 'inline';
+    } else if (unsubscribeButton) {
+      unsubscribeButton.style.display = 'none';
+    }
+  };
+
+
+  const checkNotificationSupport = (): boolean => {
+    return 'serviceWorker' in navigator && 'PushManager' in window;
+  };
+
+  const registerServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
+    if (!checkNotificationSupport()) return null;
+
+    try {
+      devLog('Registering service worker...');
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      devLog('Registration object:', registration);
+      devLog('Active SW:', registration.active);
+      devLog('Installing SW:', registration.installing);
+      devLog('Waiting SW:', registration.waiting);
+
+      // Wait for the service worker to be active if it's not already
+      if (registration.active === null) {
+        devLog('SW not active yet, waiting...');
+        await new Promise<void>((resolve) => {
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            newWorker?.addEventListener('statechange', () => {
+              if (newWorker.state === 'activated') {
+                resolve();
+              }
+            });
+          });
+        });
+        devLog('SW is now active.');
+      }
+
+      return registration;
+    } catch (error) {
+      console.error('Service worker registration failed:', error);
+      return null;
+    }
+  };
+
+  const checkSubscriptionStatus = async () => {
+    if (!subscribeButton) return;
+
+    if (!checkNotificationSupport()) {
+      updateButtonState(BUTTON_TEXTS.UNSUPPORTED, true, false);
+      return;
+    }
+
+    const registration = await registerServiceWorker();
+    if (!registration) {
+      updateButtonState(BUTTON_TEXTS.SERVICE_WORKER_UNAVAILABLE, true);
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.getRegistration('/sw.js');
+      if (!registration) {
+        // Service worker not registered yet
+        return;
+      }
+
+      const permission = Notification.permission;
+      const existingSubscription = await registration.pushManager.getSubscription();
+
+      console.log({
+        permission,
+        existingSubscription
+      });
+
+      if (permission === 'denied') {
+        updateButtonState(BUTTON_TEXTS.BLOCKED, true);
+        return;
+      }
+
+      if (existingSubscription) {
+        updateButtonState(BUTTON_TEXTS.SUBSCRIBED, true);
+        return;
+      }
+
+      if (permission === 'granted' && !localStorage.getItem('push-unsubscribed-at')) {
+        // Permission granted but no subscription (likely expired)
+        updateButtonState(BUTTON_TEXTS.REFRESHING, true);
+        await handleSubscribe();
+        return;
+      }
+
+      // Default state - permission not granted yet
+      updateButtonState(BUTTON_TEXTS.DEFAULT, false);
+
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+      updateButtonState(BUTTON_TEXTS.SERVICE_WORKER_UNAVAILABLE, true);
+    }
+  };
+
+  const handleSubscribe = async () => {
+    if (!subscribeButton) return;
+
+    updateButtonState(BUTTON_TEXTS.SUBSCRIBING, true);
+
+    if (!checkNotificationSupport()) {
+      updateButtonState(BUTTON_TEXTS.UNSUPPORTED, true, false);
+      return;
+    }
+
+    try {
+      // Check current permission status
+      let permission = Notification.permission;
+
+      // Request permission if not already granted or denied
+      if (permission === 'default') {
+        permission = await Notification.requestPermission();
+      }
+
+      if (permission === 'denied') {
+        updateButtonState(BUTTON_TEXTS.BLOCKED, true);
+        return;
+      }
+
+      if (permission !== 'granted') {
+        updateButtonState(BUTTON_TEXTS.BLOCKED, true);
+        return;
+      }
+
+      const registration = await registerServiceWorker();
+      if (!registration) {
+        updateButtonState(BUTTON_TEXTS.SERVICE_WORKER_UNAVAILABLE, true);
+        return;
+      }
+
+      const existing = await registration.pushManager.getSubscription();
+      if (existing) {
+        updateButtonState(BUTTON_TEXTS.SUBSCRIBED, true);
+        return;
+      }
+
+      // No existing subscription, create a new one
+      const vapidPublicKey = import.meta.env.PUBLIC_VAPID_PUBLIC_KEY;
+      let subscription;
+      if (!vapidPublicKey) {
+        console.error('VAPID public key not available');
+        updateButtonState(BUTTON_TEXTS.SERVICE_WORKER_UNAVAILABLE, true);
+        return;
+      }
+
+      devLog('VAPID Public Key:', vapidPublicKey);
+
+      // Convert VAPID public key from base64url string to Uint8Array
+      const urlBase64ToUint8Array = (base64String: string) => {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+          .replace(/-/g, '+')
+          .replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+          outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+      };
+
+      const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+      devLog('Converted applicationServerKey length:', applicationServerKey.length);
+
+      devLog('Subscribing to push...');
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: applicationServerKey
+      })
+      .then((sub) => {
+        devLog('Push subscription successful:', sub);
+        return sub;
+      })
+      .catch((err) => {
+        console.error('Failed to subscribe to push', err);
+        throw err;
+      });
+
+      devLog('Push subscription:', subscription);
+      const subObject = subscription.toJSON();
+      await fetch('/api/subscribe.json', {
+        method: 'POST',
+        body: JSON.stringify({
+          endpoint: subObject.endpoint,
+          p256dh: subObject.keys?.p256dh,
+          auth: subObject.keys?.auth
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      updateButtonState(BUTTON_TEXTS.SUBSCRIBED, true);
+      localStorage.removeItem('push-unsubscribed-at');
+      devLog('Successfully subscribed and registered on server');
+    } catch (error) {
+      console.error('Failed to subscribe', error);
+      updateButtonState(BUTTON_TEXTS.SUBSCRIPTION_FAILED, false);
+    }
+  };
+
+  // Handle unsubscribe functionality
+  const handleUnsubscribe = async () => {
+    if (!unsubscribeButton) return;
+
+    updateButtonState(BUTTON_TEXTS.UNSUBSCRIBING, true);
+
+    try {
+      const registration = await navigator.serviceWorker.getRegistration('/sw.js');
+      if (!registration) {
+        throw new Error('Service worker not registered');
+      }
+
+      const subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        throw new Error('No subscription found');
+      }
+
+      const subObject = subscription.toJSON();
+      // Call DELETE endpoint to remove subscription from server
+      await fetch('/api/subscribe.json', {
+        method: 'DELETE',
+        body: JSON.stringify({
+          endpoint: subObject.endpoint
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      // Unsubscribe from push notifications
+      await subscription.unsubscribe()
+        .then((successful) => {
+          devLog('Unsubscription successful:', successful);
+          if (successful) localStorage.setItem('push-unsubscribed-at', new Date().toISOString());
+          return successful;
+        })
+        .catch((err) => {
+          console.error('Failed to unsubscribe from push', err);
+          return false;
+        });
+      
+      updateButtonState(BUTTON_TEXTS.DEFAULT, false);
+    } catch (error) {
+      console.error('Failed to unsubscribe:', error);
+
+      updateButtonState(BUTTON_TEXTS.SUBSCRIPTION_FAILED, true);
+    }
+  };
+
+  // Check subscription status on page load
+  checkSubscriptionStatus();
+  subscribeButton?.addEventListener('click', handleSubscribe);
+  unsubscribeButton?.addEventListener('click', handleUnsubscribe);
+</script>

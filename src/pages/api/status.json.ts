@@ -3,7 +3,7 @@ import { desc, isNull, DrizzleError } from "drizzle-orm";
 import { getDb } from "@db/index";
 import { statusTable, type insertStatus } from "@db/schema";
 import { checkLoggedIn } from "@lib/auth";
-import { isValidImageUrl, CACHE_TAGS, cacheThis, cacheRebuild } from "@lib/utils";
+import { isValidImageUrl, CACHE_TAGS, cacheThis, cacheRebuild, invokeNotifPusher } from "@lib/utils";
 
 export const GET: APIRoute = async (context: APIContext) => {
   try {
@@ -43,7 +43,9 @@ export const POST: APIRoute = async (context: APIContext) => {
       .values({ text, theme, mood, spotify_link, image })
       .returning();
 
-    await cacheRebuild(context.url.origin, [CACHE_TAGS.STATUS, CACHE_TAGS.HOME, CACHE_TAGS.INFO, CACHE_TAGS.CONTENT_SEARCH]);
+    const notificationPromise = invokeNotifPusher(context, `shayu posts a status`, text || '...', import.meta.env.BATCH_SIZE).catch(console.error);
+    const cachePromise = cacheRebuild(context.url.origin, [CACHE_TAGS.STATUS, CACHE_TAGS.HOME, CACHE_TAGS.INFO, CACHE_TAGS.CONTENT_SEARCH]);
+    context.locals.runtime.ctx.waitUntil(Promise.all([notificationPromise, cachePromise]));
 
     return new Response(JSON.stringify(query[0]));
   }
