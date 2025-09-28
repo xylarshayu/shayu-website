@@ -54,127 +54,241 @@ cacheThis(Astro.response, CACHE_TAGS.INFO.TAG);
 </Layout>
 
 <script>
+  const BUTTON_TEXTS = {
+    DEFAULT: 'Want to stay posted?',
+    SUBSCRIBED: "You will be kept posted",
+    SUBSCRIBING: 'Un momento, por favor...',
+    SUBSCRIPTION_FAILED: 'Alas, there be trouble looping ye in',
+    BLOCKED: 'Gotta "Enable Notifs" first to stay posted',
+    UNSUPPORTED: 'N/A',
+    SERVICE_WORKER_UNAVAILABLE: 'Hrmm...',
+    REFRESHING: 'Lemme get ya back in the loop...',
+  }
+
   const subscribeButton = document.getElementById('subscribe');
-  const handleSubscribe = async () => {
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
-      const permission = await Notification.requestPermission();
-      if (permission === 'denied') {
-        if (subscribeButton) {
-          subscribeButton.innerText = 'Notifications blocked.';
-        }
-        return;
-      }
-      if (permission !== 'granted') {
-        if (subscribeButton) {
-          subscribeButton.innerText = 'Notifications blocked.';
-        }
-        return;
-      }
-      try {
-        console.log('Registering service worker...');
-        const registration = await navigator.serviceWorker.register('/sw.js');
-        console.log('Registration object:', registration);
-        console.log('Active SW:', registration.active);
-        console.log('Installing SW:', registration.installing);
-        console.log('Waiting SW:', registration.waiting);
 
-        // Wait for the service worker to be active if it's not already
-        if (registration.active === null) {
-          console.log('SW not active yet, waiting...');
-          await new Promise<void>((resolve) => {
-            registration.addEventListener('updatefound', () => {
-              const newWorker = registration.installing;
-              newWorker?.addEventListener('statechange', () => {
-                if (newWorker.state === 'activated') {
-                  resolve();
-                }
-              });
-            });
-          });
-          console.log('SW is now active.');
-        }
-
-        const existing = await registration.pushManager.getSubscription();
-        if (existing) {
-          if (subscribeButton) {
-            subscribeButton.innerText = 'Already subscribed!';
-          }
-          return;
-        }
-
-        const vapidPublicKey = import.meta.env.PUBLIC_VAPID_PUBLIC_KEY;
-        let subscription;
-        if (!vapidPublicKey) {
-          console.error('VAPID public key not available');
-          if (subscribeButton) {
-            subscribeButton.innerText = 'Subscription unavailable.';
-          }
-          return;
-        } else {
-          console.log('VAPID Public Key:', vapidPublicKey);
-
-          // Convert VAPID public key from base64url string to Uint8Array
-          function urlBase64ToUint8Array(base64String: string) {
-            const padding = '='.repeat((4 - base64String.length % 4) % 4);
-            const base64 = (base64String + padding)
-              .replace(/-/g, '+')
-              .replace(/_/g, '/');
-            const rawData = window.atob(base64);
-            const outputArray = new Uint8Array(rawData.length);
-            for (let i = 0; i < rawData.length; ++i) {
-              outputArray[i] = rawData.charCodeAt(i);
-            }
-            return outputArray;
-          }
-          const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
-          console.log('Converted applicationServerKey length:', applicationServerKey.length); // Should be 65
-
-          console.log('Subscribing to push...');
-          subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: applicationServerKey
-          })
-          .then((sub) => {
-            console.log('Push subscription successful:', sub);
-            return sub;
-          })
-          .catch((err) => {
-            console.error('Failed to subscribe to push', err);
-            throw err;
-          });
-        }
-        console.log('Push subscription:', subscription);
-        const subObject = subscription.toJSON();
-        await fetch('/api/subscribe.json', {
-          method: 'POST',
-          body: JSON.stringify({
-            endpoint: subObject.endpoint,
-            p256dh: subObject.keys?.p256dh,
-            auth: subObject.keys?.auth
-          }),
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        if (subscribeButton) {
-          subscribeButton.innerText = 'You are subscribed!';
-          subscribeButton.style.pointerEvents = 'none';
-          subscribeButton.style.opacity = '0.5';
-          subscribeButton.removeEventListener('click', handleSubscribe);
-        }
-      } catch (error) {
-        console.error('Failed to subscribe', error);
-        if (subscribeButton) {
-          subscribeButton.innerText = 'Subscription failed. Please try again.';
-        }
-      }
-    } else {
-      if (subscribeButton) {
-        subscribeButton.innerText = 'Push notifications not supported.';
-        subscribeButton.style.pointerEvents = 'none';
-        subscribeButton.style.opacity = '0.5';
-      }
+  // Helper function for dev-only console logs
+  const devLog = (...args: any[]) => {
+    if (import.meta.env.DEV) {
+      console.log(...args);
     }
   };
+
+  // Helper function to update button state
+  const updateButtonState = (text: typeof BUTTON_TEXTS[keyof typeof BUTTON_TEXTS], disabled: boolean = true, present: boolean = true) => {
+    if (!subscribeButton) return;
+
+    subscribeButton.innerText = text;
+    if (disabled) {
+      subscribeButton.style.pointerEvents = 'none';
+      subscribeButton.style.textDecoration = 'none';
+    }
+    if (!present) {
+      subscribeButton.style.display = 'none';
+    }
+  };
+
+  // Helper function to check browser support
+  const checkNotificationSupport = (): boolean => {
+    return 'serviceWorker' in navigator && 'PushManager' in window;
+  };
+
+  // Helper function to register service worker
+  const registerServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
+    if (!checkNotificationSupport()) return null;
+
+    try {
+      devLog('Registering service worker...');
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      devLog('Registration object:', registration);
+      devLog('Active SW:', registration.active);
+      devLog('Installing SW:', registration.installing);
+      devLog('Waiting SW:', registration.waiting);
+
+      // Wait for the service worker to be active if it's not already
+      if (registration.active === null) {
+        devLog('SW not active yet, waiting...');
+        await new Promise<void>((resolve) => {
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            newWorker?.addEventListener('statechange', () => {
+              if (newWorker.state === 'activated') {
+                resolve();
+              }
+            });
+          });
+        });
+        devLog('SW is now active.');
+      }
+
+      return registration;
+    } catch (error) {
+      console.error('Service worker registration failed:', error);
+      return null;
+    }
+  };
+
+  // Check subscription status on page load
+  const checkSubscriptionStatus = async () => {
+    if (!subscribeButton) return;
+
+    if (!checkNotificationSupport()) {
+      updateButtonState(BUTTON_TEXTS.UNSUPPORTED, true, false);
+      return;
+    }
+
+    const registration = await registerServiceWorker();
+    if (!registration) {
+      updateButtonState(BUTTON_TEXTS.SERVICE_WORKER_UNAVAILABLE, true);
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.getRegistration('/sw.js');
+      if (!registration) {
+        // Service worker not registered yet
+        return;
+      }
+
+      const permission = Notification.permission;
+      const existingSubscription = await registration.pushManager.getSubscription();
+
+      console.log({
+        permission,
+        existingSubscription
+      });
+
+      if (permission === 'denied') {
+        updateButtonState(BUTTON_TEXTS.BLOCKED, true);
+        return;
+      }
+
+      if (existingSubscription) {
+        // User is subscribed
+        updateButtonState(BUTTON_TEXTS.SUBSCRIBED, true);
+        return;
+      }
+
+      if (permission === 'granted') {
+        // Permission granted but no subscription (likely expired)
+        updateButtonState(BUTTON_TEXTS.REFRESHING, true);
+        await handleSubscribe();
+        return;
+      }
+
+      // Default state - permission not granted yet
+      updateButtonState(BUTTON_TEXTS.DEFAULT, false);
+
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+      updateButtonState(BUTTON_TEXTS.SERVICE_WORKER_UNAVAILABLE, true);
+    }
+  };
+
+  const handleSubscribe = async () => {
+    if (!subscribeButton) return;
+
+    if (!checkNotificationSupport()) {
+      updateButtonState(BUTTON_TEXTS.UNSUPPORTED, true, false);
+      return;
+    }
+
+    try {
+      // Check current permission status
+      let permission = Notification.permission;
+
+      // Request permission if not already granted or denied
+      if (permission === 'default') {
+        permission = await Notification.requestPermission();
+      }
+
+      if (permission === 'denied') {
+        updateButtonState(BUTTON_TEXTS.BLOCKED, true);
+        return;
+      }
+
+      if (permission !== 'granted') {
+        updateButtonState(BUTTON_TEXTS.BLOCKED, true);
+        return;
+      }
+
+      const registration = await registerServiceWorker();
+      if (!registration) {
+        updateButtonState(BUTTON_TEXTS.SERVICE_WORKER_UNAVAILABLE, true);
+        return;
+      }
+
+      const existing = await registration.pushManager.getSubscription();
+      if (existing) {
+        updateButtonState(BUTTON_TEXTS.SUBSCRIBED, true);
+        return;
+      }
+
+      // No existing subscription, create a new one
+      const vapidPublicKey = import.meta.env.PUBLIC_VAPID_PUBLIC_KEY;
+      let subscription;
+      if (!vapidPublicKey) {
+        console.error('VAPID public key not available');
+        updateButtonState(BUTTON_TEXTS.SERVICE_WORKER_UNAVAILABLE, true);
+        return;
+      }
+
+      devLog('VAPID Public Key:', vapidPublicKey);
+
+      // Convert VAPID public key from base64url string to Uint8Array
+      const urlBase64ToUint8Array = (base64String: string) => {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+          .replace(/-/g, '+')
+          .replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+          outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+      };
+
+      const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+      devLog('Converted applicationServerKey length:', applicationServerKey.length);
+
+      devLog('Subscribing to push...');
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: applicationServerKey
+      })
+      .then((sub) => {
+        devLog('Push subscription successful:', sub);
+        return sub;
+      })
+      .catch((err) => {
+        console.error('Failed to subscribe to push', err);
+        throw err;
+      });
+
+      devLog('Push subscription:', subscription);
+      const subObject = subscription.toJSON();
+      await fetch('/api/subscribe.json', {
+        method: 'POST',
+        body: JSON.stringify({
+          endpoint: subObject.endpoint,
+          p256dh: subObject.keys?.p256dh,
+          auth: subObject.keys?.auth
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      updateButtonState(BUTTON_TEXTS.SUBSCRIBED, true);
+      subscribeButton.removeEventListener('click', handleSubscribe);
+    } catch (error) {
+      console.error('Failed to subscribe', error);
+      updateButtonState(BUTTON_TEXTS.SUBSCRIPTION_FAILED, false);
+    }
+  };
+
+  // Check subscription status on page load
+  checkSubscriptionStatus();
   subscribeButton?.addEventListener('click', handleSubscribe);
 </script>
