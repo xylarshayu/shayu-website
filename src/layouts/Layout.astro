@@ -4,7 +4,7 @@ import '@styles/global.css';
 import { checkLoggedIn } from "@lib/auth";
 import { type selectStatus as Status } from "@db/schema";
 import { getPostOrStatus, THEME_MAP } from '@lib/utils';
-import { GoogleFontsOptimizer } from "astro-google-fonts-optimizer";
+// import { GoogleFontsOptimizer } from "astro-google-fonts-optimizer";
 
 interface Props {
 	title: string;
@@ -81,6 +81,60 @@ const lock_svg_src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAW7
 
 	</body>
 </html>
+
+<script>
+	// Theme cycling functionality
+	const themes = ['dark', 'light', 'red', 'purple'];
+
+	function getCurrentTheme() {
+		const htmlElement = document.documentElement;
+		const currentStyle = htmlElement.getAttribute('style') || '';
+
+		// Check which theme is currently applied by looking for specific color values
+		if (currentStyle.includes('var(--dark-pen-color)')) return 'dark';
+		if (currentStyle.includes('var(--pen-color)')) return 'light';
+		if (currentStyle.includes('var(--red-pen-color)')) return 'red';
+		if (currentStyle.includes('var(--purple-pen-color)')) return 'purple';
+
+		return 'dark'; // default fallback
+	}
+
+	function applyTheme(themeName: 'dark' | 'light' | 'red' | 'purple') {
+		const themeMap: Record<'dark' | 'light' | 'red' | 'purple', { color: string; background: string; gray: string }> = {
+			dark: { color: 'var(--dark-pen-color)', background: 'var(--dark-screen-color)', gray: 'var(--dark-gray-color)' },
+			light: { color: 'var(--pen-color)', background: 'var(--screen-color)', gray: 'var(--gray-color)' },
+			red: { color: 'var(--red-pen-color)', background: 'var(--red-screen-color)', gray: 'var(--red-gray-color)' },
+			purple: { color: 'var(--purple-pen-color)', background: 'var(--purple-screen-color)', gray: 'var(--purple-gray-color)' },
+		};
+
+		const theme = themeMap[themeName];
+		if (!theme) return;
+
+		const { color, background, gray } = theme;
+		const newStyle = `${color ? `color: ${color};` : ''} ${background ? `background-color: ${background};` : ''} ${gray ? `--applied-gray-color: ${gray};` : ''}`;
+
+		document.documentElement.setAttribute('style', newStyle);
+	}
+
+	function cycleTheme() {
+		const currentTheme = getCurrentTheme();
+		const currentIndex = themes.indexOf(currentTheme);
+		const nextIndex = (currentIndex + 1) % themes.length;
+		const nextTheme = themes[nextIndex] as 'dark' | 'light' | 'red' | 'purple';
+
+		applyTheme(nextTheme);
+		console.log(`Theme switched to: ${nextTheme}`);
+	}
+
+	// Add keyboard shortcut listener
+	document.addEventListener('keydown', function(event) {
+		// Check for Ctrl + Shift + L
+		if (event.ctrlKey && event.shiftKey && event.key === 'L') {
+			event.preventDefault(); // Prevent default browser behavior
+			cycleTheme();
+		}
+	});
+</script>
 <style is:global>
 	html {
 		font-family: system-ui, sans-serif;
