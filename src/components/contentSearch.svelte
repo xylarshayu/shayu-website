@@ -1,6 +1,6 @@
 <script lang="ts">
   import { type selectPost } from '@db/schema';
-  import { getListOfPostsOrStatuses, isCorrectDateConcise, dateConcise, dateConciseForInput, dateConciseToInputFormat, dateString, type SearchOptions, type DataType } from "@lib/utils";
+  import { getListOfPostsOrStatuses, randomizeArray, isCorrectDateConcise, dateConcise, dateConciseForInput, dateConciseToInputFormat, dateString, type SearchOptions, type DataType } from "@lib/utils";
   import Status from './status.svelte';
   import { marked } from 'marked';
 
@@ -79,6 +79,19 @@
   const isPost = (item: DataType<'post' | 'status'>): item is selectPost => {
     return 'slug' in item;
   };
+
+  const previewReplacement = randomizeArray([
+    'ฅʕ•̫͡•ʔฅ',
+    '✪ ω ✪',
+    '(*Φ皿Φ*)',
+    '(╯▔皿▔)╯',
+    '♨︎_♨︎',
+    '(ʘ言ʘ╬)',
+    'ᓚᘏᗢ',
+    'U•ェ•*U',
+    '¯\(°_o)/¯',
+    '┬┴┬┴┤(･_├┬┴┬┴'
+  ]);
 
   const textContent = (item: DataType<'post' | 'status'>) => {
     let text = marked(item.text?.replace(/\n/g, '<br />') ?? '');
@@ -167,7 +180,7 @@
   <hr class="mt-1 mb-3 border-[--dark-faint-border-color]">
 
   {#if items.length}
-  {#each items as item (`${item.id}-${item.text}-${justMounted}`)}
+  {#each items as item, i_idx (`${item.id}-${item.text}-${justMounted}`)}
   {#key contentType + item.id}
     <a href={getHref(item)} target={contentType == 'post' ? undefined : '_blank'} class="border-b border-[--dark-faint-border-color] pb-3 pt-2 block">
       {#if isPost(item)} <!-- Type guard to reassure typescript that it's a post -->
@@ -177,9 +190,14 @@
         <span class="text-sm font-bold tracking-wide text-[--applied-gray-color]">
           {item.type == 'poem' ? 'Poem' : 'Post'}
         </span>
-        <p class="post-preview-text my-2">
-          {@html textContent(item)}
-        </p>
+        <div class="preview-box relative my-3">
+          <p class="post-preview-text blur-jitter">
+            {@html textContent(item)}
+          </p>
+          <div class="random-preview-text absolute top-0 left-0 px-4 py-2">
+            {previewReplacement[i_idx % previewReplacement.length]}
+          </div>
+        </div>
         {:else}
           <Status status={item} />
 
@@ -239,5 +257,16 @@
   max-width: 100%;
   line-height: var(--line-height);
   max-height: calc(var(--num-lines) * var(--line-height));
+  user-select: none;
+}
+.random-preview-text {
+  transition: opacity 0.2s ease-in-out;
+  opacity: 1;
+  user-select: none;
+}
+.preview-box:hover .random-preview-text,
+.preview-box:focus-within .random-preview-text {
+  opacity: 0;
+  pointer-events: none;
 }
 </style>
