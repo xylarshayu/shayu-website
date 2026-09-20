@@ -19,6 +19,7 @@ export const GET: APIRoute = async (context: APIContext) => {
       ))
       .limit(1);
     const status = query[0];
+    if (!status) return new Response("Not found", { status: 404 });
     const response = new Response(JSON.stringify(status));
     cacheThis(response, CACHE_TAGS.SLUG.TAG.replace('$slug', slug));
     return response;
@@ -37,6 +38,8 @@ export const PATCH: APIRoute = async (context: APIContext) => {
     const { isLoggedIn, toRedirect } = await checkLoggedIn(context.cookies);
     if (!isLoggedIn) return context.redirect(toRedirect!);
     const db = getDb(context.locals.runtime.env.DB);
+    const originalSlug = context.params.slug;
+    if (!originalSlug) return new Response("Bad request: slug is required", { status: 400 });
     const body: selectPost = await context.request.json();
     let { title, text, type, image, textColor, backgroundColor, date } = body;
     if (image?.length && !isValidImageUrl(image)) return new Response("Bad request: image is invalid", { status: 400 });
@@ -49,12 +52,13 @@ export const PATCH: APIRoute = async (context: APIContext) => {
       .where(
         and(
           isNull(postTable._deleted_at),
-          eq(postTable.slug, slug)
+          eq(postTable.slug, originalSlug)
         )
       )
       .returning();
     if (!query[0]) return new Response("Not found", { status: 404 });
-    await cacheRebuild(context.url.origin, [CACHE_TAGS.CONTENT_SEARCH, CACHE_TAGS.SLUG], [['$slug', slug]]);
+    await purgeCache([CACHE_TAGS.SLUG.TAG.replace('$slug', originalSlug)]);
+    await cacheRebuild(context.url.origin, [CACHE_TAGS.CONTENT_SEARCH, CACHE_TAGS.SLUG, CACHE_TAGS.SITEMAP], [['$slug', slug]]);
     return new Response(JSON.stringify(query[0]));
   }
   catch (error) {
@@ -71,8 +75,7 @@ export const DELETE: APIRoute = async (context: APIContext) => {
     const { isLoggedIn, toRedirect } = await checkLoggedIn(context.cookies);
     if (!isLoggedIn) return context.redirect(toRedirect!);
     const db = getDb(context.locals.runtime.env.DB);
-    const url = new URL(context.request.url);
-    const slug = url.searchParams.get('slug');
+    const slug = context.params.slug;
     if (!slug) return new Response("Bad request: slug is required", { status: 400 });
     const query = await db
       .update(postTable)
@@ -85,7 +88,8 @@ export const DELETE: APIRoute = async (context: APIContext) => {
       )
       .returning();
     if (!query[0]) return new Response("Not found", { status: 404 });
-    await purgeCache([CACHE_TAGS.CONTENT_SEARCH.TAG, CACHE_TAGS.SLUG.TAG.replace('$slug', slug)]);
+    await purgeCache([CACHE_TAGS.SLUG.TAG.replace('$slug', slug)]);
+    await cacheRebuild(context.url.origin, [CACHE_TAGS.CONTENT_SEARCH, CACHE_TAGS.SITEMAP]);
     return new Response(null, { status: 204 });
   }
   catch (error) {

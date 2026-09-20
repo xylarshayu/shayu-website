@@ -4,9 +4,47 @@ import PostViewer from "@components/post.svelte";
 import { type selectPost } from "@db/schema";
 const { slug } = Astro.params;
 import { cacheThis, CACHE_TAGS } from '@lib/utils';
+import { DEFAULT_SOCIAL_IMAGE, DEFAULT_SOCIAL_IMAGE_ALT, SITE_URL } from '@lib/site';
 
-const post: selectPost = await fetch(Astro.url.origin + '/api/post/' + slug + '.json').then(res => res.json());
-if (!post) return Astro.redirect('/404');
+const postResponse = await fetch(Astro.url.origin + '/api/post/' + slug + '.json');
+if (!postResponse.ok) {
+  const notFoundPage = await Astro.rewrite('/404');
+  return new Response(notFoundPage.body, {
+    status: 404,
+    statusText: 'Not Found',
+    headers: notFoundPage.headers,
+  });
+}
+const post: selectPost = await postResponse.json();
+
+const plainText = (post.text ?? '')
+  .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+  .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+  .replace(/<[^>]*>/g, ' ')
+  .replace(/[`*_>#~-]/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim();
+const description = plainText
+  ? `${plainText.slice(0, 157).trimEnd()}${plainText.length > 157 ? '…' : ''}`
+  : `${post.type === 'poem' ? 'A poem' : 'A post'} by Shayu.`;
+const socialImage = post.image || DEFAULT_SOCIAL_IMAGE;
+const socialImageAlt = post.image ? `Image for “${post.title}” by Shayu.` : DEFAULT_SOCIAL_IMAGE_ALT;
+const canonicalURL = new URL(`/post/${post.slug}`, Astro.site ?? SITE_URL);
+const structuredData = {
+  '@type': post.type === 'poem' ? 'CreativeWork' : 'BlogPosting',
+  '@id': `${canonicalURL.href}#content`,
+  headline: post.title,
+  description,
+  url: canonicalURL.href,
+  mainEntityOfPage: canonicalURL.href,
+  datePublished: new Date(post.date).toISOString(),
+  inLanguage: 'en',
+  image: new URL(socialImage, Astro.site ?? SITE_URL).href,
+  author: {
+    '@type': 'Person',
+    name: 'Shayu',
+  },
+};
 
 const theme = post.textColor || post.backgroundColor
   ? {
@@ -19,8 +57,20 @@ const theme = post.textColor || post.backgroundColor
 cacheThis(Astro.response, CACHE_TAGS.SLUG.TAG.replace('$slug', post.slug));
 ---
 
-<Layout title={post.title + ' - by shayu'} theme={theme} fetchLatestStatus={false} obscureLogo={true}>
-  <div class="px-4 py-12 page-height w-[90%] md:w-[50%] mx-auto" style={"color: " + post.textColor + "; background-color: " + post.backgroundColor + ";"}>
+<Layout
+  title={post.title + ' — by Shayu'}
+  {description}
+  canonicalPath={`/post/${post.slug}`}
+  type="article"
+  image={socialImage}
+  imageAlt={socialImageAlt}
+  publishedTime={post.date}
+  {structuredData}
+  theme={theme}
+  fetchLatestStatus={false}
+  obscureLogo={true}
+>
+  <main class="px-4 py-12 page-height w-[90%] md:w-[50%] mx-auto" style={"color: " + post.textColor + "; background-color: " + post.backgroundColor + ";"}>
     <PostViewer post={post} />
-  </div>
+  </main>
 </Layout>

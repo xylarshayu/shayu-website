@@ -14,13 +14,19 @@ const options: { [key: string]: string | undefined | null } = {};
 });
 
 const page = Number(Astro.url.searchParams.get('page') ?? '1');
+const hasSearchFilters = Astro.url.search.length > 0;
 
 const { items, count } = await getListOfPostsOrStatuses(Astro.url.origin, contentType, true, page, options);
 
 cacheThis(Astro.response, CACHE_TAGS.CONTENT_SEARCH.TAG);
 ---
 
-<Layout title="Search">
+<Layout
+  title="Writings — Shayu's Space"
+  description="Browse notes, poems, and posts by Shayu."
+  canonicalPath="/search"
+  noindex={hasSearchFilters}
+>
   <main class="page-height border-y border-[--dark-faint-border-color]">
     <div class="w-[90%] md:w-[70%] mx-auto py-12">
       <h1 class="h3">My Posts</h1>
