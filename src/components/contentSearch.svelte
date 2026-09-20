@@ -184,9 +184,9 @@
   {#key contentType + item.id}
     <a href={getHref(item)} target={contentType == 'post' ? undefined : '_blank'} class="border-b border-[--dark-faint-border-color] pb-3 pt-2 block">
       {#if isPost(item)} <!-- Type guard to reassure typescript that it's a post -->
-        <h1 class="font-bold text-lg">
+        <h2 class="font-bold text-lg">
           {item.title}
-        </h1>
+        </h2>
         <span class="text-sm font-bold tracking-wide text-[--applied-gray-color]">
           {item.type == 'poem' ? 'Poem' : 'Post'}
         </span>

@@ -59,7 +59,7 @@ export const POST: APIRoute = async (context: APIContext) => {
     const post = query[0];
     const postUrl = `/post/${post.slug}`;
     const notificationPromise = invokeNotifPusher(context, `New ${type} by shayu`, title, import.meta.env.BATCH_SIZE, postUrl).catch(console.error);
-    const cachePromise = cacheRebuild(context.url.origin, [CACHE_TAGS.CONTENT_SEARCH, CACHE_TAGS.SLUG], [['$slug', slug]]);
+    const cachePromise = cacheRebuild(context.url.origin, [CACHE_TAGS.CONTENT_SEARCH, CACHE_TAGS.SLUG, CACHE_TAGS.SITEMAP], [['$slug', slug]]);
     context.locals.runtime.ctx.waitUntil(Promise.all([notificationPromise, cachePromise]));
     return new Response(JSON.stringify(query[0]));
   } 

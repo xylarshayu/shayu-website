@@ -22,7 +22,11 @@ const socialLinks = [
 cacheThis(Astro.response, CACHE_TAGS.INFO.TAG);
 ---
 
-<Layout title="Shayu's Site">
+<Layout
+  title="About Shayu — Shayu's Space"
+  description="A small map of Shayu's names and places elsewhere on the internet."
+  canonicalPath="/info"
+>
   <div class="flex flex-col items-center justify-center page-height border-y border-[--dark-faint-border-color]">
     <main class="w-[90%] md:w-[50%]">
       <article class="prose !text-inherit">

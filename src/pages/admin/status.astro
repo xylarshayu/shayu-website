@@ -10,7 +10,7 @@ if (!isLoggedIn) return Astro.redirect(toRedirect);
 let { data: status, mode } = await getPostOrStatus(Astro, 'status');
 ---
 
-<Layout title="Make a new post">
+<Layout title="Make a new status" noindex={true}>
   <main class="w-[90%] md:w-[70%] mx-auto pt-10vh page-height gap-1 pt-12">
     <h1 class="h4 text-primary-100 text-center md:text-left">
       Make a new status

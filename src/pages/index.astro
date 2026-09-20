@@ -13,8 +13,14 @@ const { isLoggedIn } = await checkLoggedIn(Astro.cookies);
 cacheThis(Astro.response, CACHE_TAGS.HOME.TAG);
 ---
 
-<Layout title="Shayu's Site" fetchLatestStatus={false} theme={statuses[0].theme}>
+<Layout
+	title="Shayu's Space"
+	description="Notes, poems, statuses, and other things from Shayu."
+	fetchLatestStatus={false}
+	theme={statuses[0].theme}
+>
 	<main class="flex flex-col items-center justify-center page-height gap-1 border-y border-[--dark-faint-border-color]">
+		<h1 class="sr-only">Shayu's Space</h1>
 		<div class="mt-2">
 			<HeroCarousel statuses={statuses} count={count} client:load />
 		</div>

@@ -28,10 +28,12 @@
   const handleUpdate = async () => {
     if (mode !== 'update') return;
     try {
-      await fetch(`/api/post/${post.id}.json`, {
+      const response = await fetch(`/api/post/${post.slug}.json`, {
         method: 'PATCH',
         body: JSON.stringify(post),
       });
+      if (!response.ok) throw new Error(await response.text());
+      post = await response.json();
       mode = 'update';
       date = dateInputFormat(post.date!);
     }
@@ -43,9 +45,10 @@
   const handleDelete = async () => {
     if (mode !== 'update') return;
     try {
-      await fetch(`/api/post/${post.id}.json`, {
+      const response = await fetch(`/api/post/${post.slug}.json`, {
         method: 'DELETE',
       });
+      if (!response.ok) throw new Error(await response.text());
       post = getDefaultPostOrStatus('post');
       date = dateInputFormat(new Date());
       mode = 'create';

@@ -154,7 +154,8 @@ export const CACHE_TAGS = {
   STATUS: t_u('status', ['/api/status.json', '/api/statuses.json']),
   INFO: t_u('info', ['/info']),
   CONTENT_SEARCH: t_u('content-search', ['/api/posts.json', '/search']),
-  SLUG: t_u('slug-$slug', ['/search', '/post/$slug'])
+  SLUG: t_u('slug-$slug', ['/search', '/post/$slug']),
+  SITEMAP: t_u('sitemap', ['/sitemap.xml']),
 };
 
 export function cacheThis(response: { readonly headers: Headers }, tag: string, browserAge: number = 300, cfCdnAge: number = 2419200) {
@@ -226,7 +227,7 @@ export async function cacheRebuild(originUrl: string, tagInfo: { TAG: string, UR
       if (url == '/') {
         return originUrl;
       } else {
-        return originUrl + url.replace(/^\//, ''); // Ensure no leading slash
+        return new URL(url, originUrl).href;
       }
     })
     return { TAG, URLs };
